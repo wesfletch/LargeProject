@@ -4,6 +4,40 @@
 
 .signIn {
   color: rgb(255, 255, 255);
-  background-color: rgb(23,23,23);
   text-align: center;
+}
+
+.btn-signInBtn {
+  background-color: rgb(156, 39, 176);
+  color: rgb(255, 255, 255);
+  border: 2px rgb(156, 39, 176);
+}
+
+.btn-big {
+  padding: 0.3rem 10rem;
+  font-size: 1.4rem;
+}
+
+.mainForms {
+  background-color: rgb(23,23,23);
+  padding: 10px;
+  margin-top: 20%;
+  margin-bottom: 80%;
+  border-width: 10px;
+  border-style: solid;
+  border-color: rgb(19,19,19);
+}
+
+.forms {
+  color: rgb(255, 255, 255);
+  text-align: left;
+}
+
+.formElement {
+  margin-bottom: 5%;
+}
+
+.form-control:focus {
+  border-color: rgb(89, 31, 99);
+  box-shadow: 0 0 0 0.1rem rgb(156, 39, 176);
 }
