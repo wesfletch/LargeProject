@@ -6,7 +6,7 @@ exports.setApp = function (app, client)
 
     app.post('/api/register', async (req, res, next) =>
     {
-
+        // incoming: email, password
         // //
 
     });
@@ -43,27 +43,5 @@ exports.setApp = function (app, client)
         
         res.status(200).json(ret);
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 

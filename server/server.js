@@ -52,5 +52,7 @@ mongoose.connect(url)
     .then(() => console.log("Mongo DB connected"))
     .catch(err => console.log(err));
 
-var api = require('./api.js');
-api.setApp( app, mongoose );
+// var api = require('./api.js');
+// api.setApp( app, mongoose );
+
+app.use("/users", require("./routes/users"));
