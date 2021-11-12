@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt');
 
 const reqString = {
     type: String, 
@@ -12,6 +13,7 @@ const userSchema = mongoose.Schema({
     spotify_uri: String,
     link: String,
     ID: String,
+    password: String,
     profile_image: String,
     product: String,
     type: String,
@@ -20,6 +22,31 @@ const userSchema = mongoose.Schema({
     top_music: Array,
     top_artists: Array,
 })
+
+// for password encryption
+userSchema.pre('save', function(next)
+{
+    if(!this.isModified('password'))
+        return next();
+    bcrypt.hash(this.password,10,(err,passwordHash)=>{
+        if(err)
+            return next(err);
+        this.password = passwordHash;
+        next();
+    });
+});
+
+userSchema.methods.comparePassword = function(password,cb) {
+    bcrypt.compare(password,this.password,(err,isMatch)=>{
+        if(err)
+            return cb(err);
+        else{
+            if(!isMatch)
+                return cb(null,isMatch);
+            return cb(null,this);
+        }
+    });
+}
 
 //if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
 

@@ -1,13 +1,18 @@
 const express = require('express');
 // const bodyParser = require('body-parser');
 const cors = require('cors');
-
 const path = require('path');
-const PORT = process.env.PORT || 5000;
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+app.use(express.urlencoded());
+
+require('dotenv').config({path: '../.env'});
 
 // enable CORS, 
 app.use((req, res, next) => 
@@ -24,7 +29,7 @@ app.use((req, res, next) => 
   next();
 });
 
-//
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
 {
     console.log('Server listening on port ' + PORT);
@@ -42,17 +47,11 @@ if (process.env.NODE_ENV === 'production')
     });
 }
 
-// app.listen(5000); // start Node + Express server on port 5000
-
-require('dotenv').config({path: '../.env'});
-
 const url = process.env.MONGODB_URI;
 const mongoose = require("mongoose");
 mongoose.connect(url)
     .then(() => console.log("Mongo DB connected"))
     .catch(err => console.log(err));
 
-// var api = require('./api.js');
-// api.setApp( app, mongoose );
-
+// add the /users router (/routes/User.js)
 app.use("/users", require("./routes/users"));
