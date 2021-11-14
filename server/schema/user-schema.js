@@ -28,7 +28,8 @@ userSchema.pre('save', function(next)
 {
     if(!this.isModified('password'))
         return next();
-    bcrypt.hash(this.password,10,(err,passwordHash)=>{
+    bcrypt.hash(this.password,10,(err,passwordHash) => 
+    {
         if(err)
             return next(err);
         this.password = passwordHash;
@@ -36,16 +37,28 @@ userSchema.pre('save', function(next)
     });
 });
 
-userSchema.methods.comparePassword = function(password,cb) {
-    bcrypt.compare(password,this.password,(err,isMatch)=>{
+userSchema.methods.comparePassword = function(password,cb) 
+{
+    bcrypt.hash(password, 10, (err, passwordHash) =>
+    {   
         if(err)
             return cb(err);
-        else{
-            if(!isMatch)
-                return cb(null,isMatch);
-            return cb(null,this);
+        else 
+        {
+            bcrypt.compare(password, passwordHash, (err,isMatch) => 
+            {
+                if(err)
+                    return cb(err);
+                else{
+                    if(!isMatch)
+                        return cb(null,isMatch);
+                    return cb(null,this);
+                }
+            });
         }
     });
+
+    
 }
 
 //if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'

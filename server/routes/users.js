@@ -2,7 +2,7 @@ const router = require("express").Router();
 const passport = require('passport');
 const passportConfig = require('../passport');
 const bcrypt = require('bcrypt');
-const jwt = require("jsonwebtoken");
+const JWT = require("jsonwebtoken");
 
 const User = require("../schema/user-schema.js");
 const Friend = require("../schema/friend-schema.js");
@@ -32,7 +32,7 @@ router.post('/register', (req,res) =>
     }
     
     const {email, password} = req.body;
-    User.findOne({email, password}, (err,user) => 
+    User.findOne({ email, password }, (err,user) => 
     {
         if(err)
             res.status(500).json({message : {msgBody : "Error searching database", msgError: true}});
@@ -41,8 +41,6 @@ router.post('/register', (req,res) =>
         else
         {
             const newUser = new User({
-                firstname: req.body.firstname,
-                lastname: req.body.lastname,
                 email: req.body.email,
                 password: req.body.password,
             });
@@ -61,11 +59,13 @@ router.post('/login', passport.authenticate('local', {session : false}), (req,re
 {
     //Form validation
     const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) {
-    return res.status(400).json(errors);
+    if (!isValid) 
+    {
+        return res.status(400).json(errors);
     }
 
-    if(req.isAuthenticated()){
+    if (req.isAuthenticated())
+    {
        const {_id,email} = req.user;
        const token = signToken(_id);
        res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 

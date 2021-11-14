@@ -2,6 +2,7 @@ const express = require('express');
 // const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const passport = require("passport");
 const app = express();
 
 app.use(cors());
@@ -46,6 +47,9 @@ if (process.env.NODE_ENV === 'production')
         res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
     });
 }
+
+// Passport middleware
+app.use(passport.initialize());
 
 const url = process.env.MONGODB_URI;
 const mongoose = require("mongoose");
