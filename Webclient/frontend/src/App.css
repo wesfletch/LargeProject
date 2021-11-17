@@ -1,8 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap');
+
 .main {
-  background-image: url("https://lh3.googleusercontent.com/SLVY3pZlxA5fC48C3rKG4NSA2W00O__aPsq8TOz6gHH1MHQYK5vilWcUruIyVOsQM93baKydERZ6IM4O_VscwO0LcvlGGa5qJc8t7PmmQeCBl8f7NJc9Yvzw2e86k6ViOYloV0yc=w2400");
+  background-image: url("https://drive.google.com/uc?export=view&id=123lwN0xP98fthfJF8NLFyKErmklEyiuH");
 }
 
 .signIn {
+  font-size: 2.8rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+
+.guest {
+  font-size: 1.4rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
   color: rgb(255, 255, 255);
   text-align: center;
 }
@@ -13,8 +26,19 @@
   border: 2px rgb(156, 39, 176);
 }
 
+.btn-guestBtn {
+  color: rgb(255, 255, 255);
+  border-radius: 2px; 
+  border-color: rgb(156, 39, 176);
+}
+
 .btn-big {
   padding: 0.3rem 10rem;
+  font-size: 1.4rem;
+}
+
+.btn-bigG {
+  padding: 0.3rem 6.5rem;
   font-size: 1.4rem;
 }
 
@@ -26,6 +50,7 @@
   border-width: 10px;
   border-style: solid;
   border-color: rgb(19,19,19);
+  font-size: 1.2rem;
 }
 
 .forms {
@@ -33,11 +58,23 @@
   text-align: left;
 }
 
+.noAccount {
+  color: rgb(255, 255, 255);
+  text-align: center;
+  margin-top: 5%;
+}
+
 .formElement {
-  margin-bottom: 5%;
+  margin-bottom: 3%;
 }
 
 .form-control:focus {
   border-color: rgb(89, 31, 99);
   box-shadow: 0 0 0 0.1rem rgb(156, 39, 176);
+}
+
+.links {
+  color: rgb(255, 255, 255);
+  text-align: center;
+  margin-top: 5%;
 }
