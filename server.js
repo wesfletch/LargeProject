@@ -13,7 +13,7 @@ app.use(cookieParser());
 
 app.use(express.urlencoded());
 
-require('dotenv').config({path: '../.env'});
+require('dotenv').config({path: './.env'});
 
 // enable CORS, 
 app.use((req, res, next) => 
