@@ -19,18 +19,6 @@ const signToken = userID =>{
     }, process.env.JWT_SECRET, {expiresIn : "1h"});
 }
 
-// function authenticate(email, password, fn) 
-// {
-
-//     User.findOne({email: email, funciton(err, user) {
-//         if (!user) return fn(new Error('cannot find user'));
-        
-
-//     }
-
-
-// }
-
 /*---------------------------------------------------*/
 //             Login/Registration APIs
 /*---------------------------------------------------*/
