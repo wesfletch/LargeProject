@@ -31,7 +31,8 @@ passport.use(new JwtStrategy({  jwtFromRequest : cookieExtractor,
 // authenticated local strategy using username and password
 passport.use(new LocalStrategy({usernameField: 'email'}, (email,password,done) => {
     
-    User.findOne({email},(err,user) => {
+    User.findOne({email},(err,user) => 
+    {
         // something went wrong with database
         if(err)
             return done(err);

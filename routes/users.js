@@ -32,12 +32,14 @@ router.post('/register', (req,res) =>
     }
     
     const {email, password} = req.body;
-    User.findOne({ email, password }, (err,user) => 
+    User.findOne({ email }, (err,user) => 
     {
         if(err)
             res.status(500).json({message : {msgBody : "Error searching database", msgError: true}});
         if(user)
+        {
             res.status(400).json({message : {msgBody : "Email is already taken", msgError: true}});
+        }
         else
         {
             const newUser = new User({
@@ -57,7 +59,7 @@ router.post('/register', (req,res) =>
 
 router.post('/login', passport.authenticate('local', {session : false}), (req,res) => 
 {
-    //Form validation
+    // Form validation; ensure we've been given all necessary info
     const { errors, isValid } = validateLoginInput(req.body);
     if (!isValid) 
     {
