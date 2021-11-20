@@ -39,22 +39,16 @@ userSchema.pre('save', function(next)
 
 userSchema.methods.comparePassword = function(password,cb) 
 {
-    bcrypt.hash(password, 10, (err, passwordHash) =>
-    {   
+    // no need to hash our password beforehand, bcrypt does this for us
+    // just compare plaintext password to (hashed) User password
+    bcrypt.compare(password, this.password, (err,isMatch) => 
+    {
         if(err)
             return cb(err);
-        else 
-        {
-            bcrypt.compare(password, passwordHash, (err,isMatch) => 
-            {
-                if(err)
-                    return cb(err);
-                else{
-                    if(!isMatch)
-                        return cb(null,isMatch);
-                    return cb(null,this);
-                }
-            });
+        else{
+            if(!isMatch)
+                return cb(null,isMatch);
+            return cb(null,this);
         }
     });
 
