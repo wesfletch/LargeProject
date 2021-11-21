@@ -1,13 +1,13 @@
-**Updates: **  
-    -I added a field for images on the User and Friend schema incase we want to implement profile pictues. 
-    -I added a "sharedWith" field to the playlist schema so the friend a playlist was made with can be saved.
-    -I added the Spotify Api:
+#Updates:<br>
+    -I added a field for images on the User and Friend schema incase we want to implement profile pictues.<br> 
+    -I added a "sharedWith" field to the playlist schema so the friend a playlist was made with can be saved.<br>
+    -I added the Spotify Api:<br>
             There are two API routes, /User and /Fetch
 
             /User is for all user related requests
             /Fetch is for all Spotify API requests
 
-Information for /Fetch
+**Information for /Fetch**
     
     /fetch/artist
         GET request:
