@@ -1,3 +1,5 @@
+# All off my updated files can be found in the "API_Things" folder.   
+
 # Updates:
     -I added a field for images on the User and Friend schema incase we want to 
      implement profile pictues.
