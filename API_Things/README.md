@@ -103,7 +103,14 @@
         It returns an array named "tracks" containing the name, ID, artist, preview link, and 
 	    track link of all the reccomended tracks.
 
-        Input json:
+	Input json:
+	{
+            seed_artists: ['ArtistID']
+            seed_genres: ['Genre Name']
+            seed_tracks: ['TrackID']
+        }
+	
+        Example input json:
         {
             seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
             seed_genres: ['hip-hop', 'r-n-b']
