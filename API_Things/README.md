@@ -1,4 +1,4 @@
-Updates:   
+**Updates: **  
     -I added a field for images on the User and Friend schema incase we want to implement profile pictues. 
     -I added a "sharedWith" field to the playlist schema so the friend a playlist was made with can be saved.
     -I added the Spotify Api:
@@ -27,7 +27,8 @@ Information for /Fetch
 
     /fetch/artists
         GET request:
-        Takes in an artist's name, searches it in Spotify's database and returns an array of possible matches. It returns an array named "artists" that contains all the matching artists' names, IDs, and images.
+        Takes in an artist's name, searches it in Spotify's database and returns an array of possible matches. 
+        It returns an array named "artists" that contains all the matching artists' names, IDs, and images.
 
         Input json: {artist: "artist's name"}
 
@@ -49,7 +50,8 @@ Information for /Fetch
 
     /fetch/track
         GET request:
-        Takes in a track name, searches it in Spotify's database and returns an array of possible matches.  It returns an array named "tracks" containing the name, ID, artist, preview link, and track link of all the matching tracks.
+        Takes in a track name, searches it in Spotify's database and returns an array of possible matches.  
+        It returns an array named "tracks" containing the name, ID, artist, preview link, and track link of all the matching tracks.
 
         Input json: {artist: "track name"}
 
@@ -86,7 +88,10 @@ Information for /Fetch
 
     /fetch/recs
         GET request:
-        Takes in only five seeds/inputs made up of artist IDs, track IDs, and genres. The seeds can be any combination of the 3 fields (i.e. 3 traacks and 2 genres, or 4 artists and 1 genre, or 2 tracks, 2 genres, and 1 artist). But the number seeds can not exceed 5. It returns an array named "tracks" containing the name, ID, artist, preview link, and track link of all the reccomended tracks.
+        Takes in only five seeds/inputs made up of artist IDs, track IDs, and genres. 
+        The seeds can be any combination of the 3 fields (i.e. 3 traacks and 2 genres, or 4 artists and 1 genre, or 2 tracks, 2 genres, and 1 artist). 
+        But the number seeds can not exceed 5. 
+        It returns an array named "tracks" containing the name, ID, artist, preview link, and track link of all the reccomended tracks.
 
         Input json:
         {
@@ -109,15 +114,15 @@ Information for /Fetch
                 .......
             ]
 
-Information for /User:
+**Information for /User:**
 
     /user/register
         POST request:
-            Takes in the fields on the User schena, validates all fields, checks the database for matching email and password pair, and then saves the user to the database.
+            Takes in the fields on the User schena, validates all fields, checks the database for matching email and password pair, and then saves the user to               the database.
     
     /user/login
         POST request:  
-            Takes in user email and password, validates that they were entered correctly, checks the entered info in the database, then logs in the user by passing an authentication cookie.
+            Takes in user email and password, validates that they were entered correctly, checks the entered info in the database, then logs in the user by                   passing an authentication cookie.
 
     /user/logout
         GET request:
