@@ -6,10 +6,10 @@
     -I added a "sharedWith" field to the playlist schema so the friend a playlist 
      was made with can be saved.
     -I added the Spotify Api:
-            There are now two API routes, /User and /Fetch
-
-            /User is for all user related requests
-            /Fetch is for all Spotify API requests
+     
+     There are now two API routes, /User and /Fetch
+		- /User is for all user related requests
+		- /Fetch is for all Spotify API requests
 
 ## Information on the Spotify API:</br>
 	In order to get recommendations, the Spotify API only accepts ArtistIDs and TrackIDs, 
