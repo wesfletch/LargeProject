@@ -14,14 +14,22 @@
   "dependencies": {
     "bcrypt": "^3.0.7",
     "cookie-parser": "^1.4.4",
+    "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "is-empty": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.8.7",
+    "nodemon": "^2.0.15",
+    "nstall": "^0.2.0",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "spotify-web-api-node": "^5.0.2",
+    "swagger": "^0.7.5",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6",
     "validator": "^13.7.0",
-    "validators": "^0.3.1"
+    "validators": "^0.3.1",
+    "yamljs": "^0.3.0"
   }
 }
