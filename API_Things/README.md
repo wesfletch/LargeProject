@@ -17,7 +17,7 @@
         Takes in an artist's name, searches it in Spotify's database and returns the exact match. 
 	    The response contains the artist's name, ID, and image.
 
-        Input json: {artist: <artist's name>}
+        Input json: {artist: "artist's name"}
 
         Match response:
         {
