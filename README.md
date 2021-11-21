@@ -5,7 +5,7 @@
      implement profile pictues.
     -I added a "sharedWith" field to the playlist schema so the friend a playlist 
      was made with can be saved.
-    -I added the Spotify Api:
+    -I added the Spotify Api.
      
      There are now two API routes, /User and /Fetch
 		- /User is for all user related requests
