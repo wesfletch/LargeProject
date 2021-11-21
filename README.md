@@ -33,7 +33,7 @@
 		the exact match. The response contains the artist's name, ID, and image.
 
         Input json: 
-	{artist: "artist's name"}
+	    {artist: "artist's name"}
 
         Match response:
         {
@@ -54,7 +54,7 @@
 		size is set at 10.
 
         Input json: 
-	{artist: "artist's name"}
+	    {artist: "artist's name"}
 
          Match response: 
             artists = [ 
@@ -80,8 +80,8 @@
 		the name, ID, artist, preview link, and track link of all the matching tracks.   
 		The max array size is set at 10.
 	
-        Input json: 
-	{artist: "track name"}
+        Input json:   
+	    {artist: "track name"}
 
          Match response: 
             tracks= [ 
@@ -126,8 +126,8 @@
 		It returns an array named "tracks" containing the name, ID, artist,    
 		preview link, and track link of all the reccomended tracks.
 
-	Input json:
-	{
+	    Input json:
+	    {
             seed_artists: ['ArtistID']
             seed_genres: ['Genre Name']
             seed_tracks: ['TrackID']
