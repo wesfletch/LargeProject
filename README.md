@@ -9,6 +9,12 @@
             /User is for all user related requests
             /Fetch is for all Spotify API requests
 
+##Information on the Spotify API:
+	In order to get recommendations, the Spotify API only accepts ArtistIDs and TrackIDs, not track or artist names. 
+	So the /artist, /artists, and /track endpoints pull the ArtistID and TrackID from Spotify.<br
+	I
+
+												     
 ## **Information for /Fetch**
     
 **/fetch/artist**
