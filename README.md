@@ -1,5 +1,3 @@
-# All of my files are in the "API_Things" folder.
-
 # Updates:
     -I added a field for images on the User and Friend schema incase we want to 
      implement profile pictues.
@@ -19,7 +17,7 @@
         Takes in an artist's name, searches it in Spotify's database and returns the exact match. 
 	    The response contains the artist's name, ID, and image.
 
-        Input json: {artist: <artist's name>}
+        Input json: {artist: "artist's name"}
 
         Match response:
         {
@@ -105,7 +103,14 @@
         It returns an array named "tracks" containing the name, ID, artist, preview link, and 
 	    track link of all the reccomended tracks.
 
-        Input json:
+	Input json:
+	{
+            seed_artists: ['ArtistID']
+            seed_genres: ['Genre Name']
+            seed_tracks: ['TrackID']
+        }
+	
+        Example input json:
         {
             seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
             seed_genres: ['hip-hop', 'r-n-b']
