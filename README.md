@@ -189,6 +189,6 @@
     
         GET request:
             Checks if a user is authenticated, meaning they have access to the areas of the site only 
-						accessible by registered users.
+	        accessible by registered users.
 
 
