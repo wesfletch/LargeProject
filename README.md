@@ -49,7 +49,8 @@
         GET request:
         Takes in an artist's name, searches it in Spotify's database and returns    
 	an array of possible matches. It returns an array named "artists" that     
-	contains all the matching artists' names, IDs, and images.
+	contains all the matching artists' names, IDs, and images. The max array   
+	size is set at 10.
 
         Input json: {artist: "artist's name"}
 
@@ -75,7 +76,8 @@
         Takes in a track name, searches it in Spotify's database and returns    
 	an array of possible matches. It returns an array named "tracks" containing    
 	the name, ID, artist, preview link, and track link of all the matching tracks.
-
+	The max array size is set at 10.
+	
         Input json: {artist: "track name"}
 
          Match response: 
@@ -116,7 +118,8 @@
         Takes in only five seeds/inputs made up of artist IDs, track IDs, and genres. 
         The seeds can be any combination of the 3 fields (i.e. 3 traaks and 2 genres, or    
 	4 artists and 1 genre, or 2 tracks, 2 genres, and 1 artist).     
-	But the number seeds can not exceed 5.   
+	But the number seeds can not exceed 5. The max amount of songs is set at 10 and  
+	the market is set to the US.
         It returns an array named "tracks" containing the name, ID, artist,    
 	preview link, and track link of all the reccomended tracks.
 
