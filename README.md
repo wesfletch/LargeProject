@@ -9,13 +9,15 @@
             /User is for all user related requests
             /Fetch is for all Spotify API requests
 
-##Information on the Spotify API:
+## Information on the Spotify API:</br>
 	In order to get recommendations, the Spotify API only accepts ArtistIDs and TrackIDs, not track or artist names. 
-	So the /artist, /artists, and /track endpoints pull the ArtistID and TrackID from Spotify.</br></br>
-	To get the ArtistID I implemented two endpoints, one that gets the exact match based on name and one that </br>
-	returns an array of possible matches.</br></br>
-	But for tracks I only implemented on endpoint that returns an array of possible matches. </br>
-	I did this because a lot of songs have the same name and it's easy to misspell a song's name. </br>
+	So the /artist, /artists, and /track endpoints pull the ArtistID and TrackID from Spotify.  
+
+	To get the ArtistID I implemented two endpoints, one that gets the exact match based on name and one that
+	returns an array of possible matches.   
+
+	But for tracks I only implemented on endpoint that returns an array of possible matches.  
+	I did this because a lot of songs have the same name and it's easy to misspell a song's name.  
 	So, I thought it'd be best if the user had a choice of possible correct songs to select from.
 
 												     
