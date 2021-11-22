@@ -57,5 +57,8 @@ mongoose.connect(url)
     .then(() => console.log("Mongo DB connected"))
     .catch(err => console.log(err));
 
-// add the /users router (/routes/User.js)
+// add the /users router (/routes/users.js)
 app.use("/users", require("./routes/users"));
+
+// add the /fetch router (/routes/fetch.js)
+app.use("/fetch", require("./routes/fetch"))
