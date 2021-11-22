@@ -4,9 +4,9 @@ const passportConfig = require('../passport');
 const bcrypt = require('bcrypt');
 const JWT = require("jsonwebtoken");
 
-const User = require("../schema/user-schema.js");
-const Friend = require("../schema/friend-schema.js");
-const Playlist = require("../schema/playlist-schema.js");
+const User = require("../schema/User.js");
+const Friend = require("../schema/Friend.js");
+const Playlist = require("../schema/Playlist.js");
 
 // Loading validators
 const validateRegisterInput = require("../Validation/register");
@@ -42,10 +42,8 @@ router.post('/register', (req,res) =>
         }
         else
         {
-            const newUser = new User({
-                email: req.body.email,
-                password: req.body.password,
-            });
+            const newUser = new User(req.body);
+            console.log(user);
             newUser.save(err => 
             {
                 if(err)
@@ -85,17 +83,20 @@ router.get('/logout', passport.authenticate('jwt', {session : false}), (req,res)
 //                   Friend APIs
 /*---------------------------------------------------*/
 
-//Add friend
+// Add friend
 router.post('/friend', passport.authenticate('jwt', {session : false}) ,(req,res) => 
 {
     const friend = new Friend(req.body);
 
-    friend.save(err=>{
+    friend.save(err => 
+    {
         if(err)
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else{
+        else
+        {
             req.user.friends.push(friend);
-            req.user.save(err=>{
+            req.user.save(err => 
+            {
                 if(err)
                     res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
                 else
@@ -105,18 +106,23 @@ router.post('/friend', passport.authenticate('jwt', {session : false}) ,(req,res
     })
 });
 
-//Get all friends
-router.get('/friends', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    User.findById({_id : req.user._id}).populate('friends').exec((err,document)=>{
+// Get all friends
+router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
+    User.findById({_id : req.user._id}).populate('friends').exec((err,document) => 
+    {
         if(err)
+        {
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else{
+        }
+        else 
+        {
             res.status(200).json({friends : document.friends, authenticated : true});
         }
     });
 });
 
-//Edit Friend Name
+// Edit Friend Name
 router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
     Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
@@ -124,7 +130,7 @@ router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,
     .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
-//Delete Friend
+// Delete Friend
 router.delete('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
     Friend.findByIdAndDelete(req.params.id)
@@ -133,9 +139,9 @@ router.delete('/friend/:id', passport.authenticate('jwt', {session : false}), (r
 });
 
 /*---------------------------------------------------*/
-//                   Playlistd APIs
+//                   Playlist APIs
 /*---------------------------------------------------*/
-//Add Playlist
+// Add Playlist
 router.post('/playlist', passport.authenticate('jwt',{session : false}) ,(req,res)=>{
     const playlist = new Playlist(req.body);
     playlist.save(err=>{
@@ -153,7 +159,7 @@ router.post('/playlist', passport.authenticate('jwt',{session : false}) ,(req,re
     })
 });
 
-//Get user's playlists
+// Get user's playlists
 router.get('/playlists', passport.authenticate('jwt',{session : false}),(req,res)=>{
     User.findById({_id : req.user._id}).populate('playlists').exec((err,document)=>{
         if(err)
@@ -164,14 +170,14 @@ router.get('/playlists', passport.authenticate('jwt',{session : false}),(req,res
     });
 });
 
-//Edit Playlist
+// Edit Playlist
 router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
     .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
     .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
-//Delete Playlist
+// Delete Playlist
 router.delete('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
     Playlist.findByIdAndDelete(req.params.id)
     .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
