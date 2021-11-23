@@ -26,7 +26,7 @@
 												     
 ## **Information for /Fetch**
     
-**/fetch/artist**
+**/fetch/artist ---> Get Artist Info of Artist With Exact Matching Name**
 		
         GET request:
 		Takes in an artist's name, searches it in Spotify's database and returns    
@@ -45,7 +45,7 @@
         No match response:
         {"Artist not found"}
 
-**/fetch/artists**
+**/fetch/artists ---> Get Array Of Matching Artists**
     
         GET request:
 		Takes in an artist's name, searches it in Spotify's database and returns    
@@ -72,7 +72,7 @@
         {"Artists not found"}
 
 
-**/fetch/track**
+**/fetch/track ---> Get Array Of Matching Tracks**
     
         GET request:
 		Takes in a track name, searches it in Spotify's database and returns    
@@ -100,7 +100,7 @@
         No match response:
         {"Tracks not found"}
 
-**/fetch/genres**
+**/fetch/genres ---> Get Array Of All Available Genres**
     
         GET request:
 		Takes in no input. Returns an unnamed array of all of Spotify's available genres.
@@ -115,7 +115,7 @@
             "anime"....
         ]
 
-**/fetch/recs**
+**/fetch/recs ---> Get Array Of Recommended Tracks**
     
         GET request:
 		Takes in only five seeds/inputs made up of artist IDs, track IDs, and genres. 
@@ -156,60 +156,130 @@
 
 ## **Information for /User:**
 
-**/user/register**
+**/user/register ---> **
     
         POST request:
 		Takes in the fields on the User schena, validates all fields, checks the    
 		database for matching email and password pair, and then saves the user    
 		to the database.
-    
-**/user/login**
+		
+		**The Validator requires that two passwords be entered during registration, 
+		and checks that they match. Though, only one password is saved in the database.
+		It also checks if any field is empty and that the email address is valid.  
+		It throws an error if any validation fails.
+		All fields are required.
+		
+		Input:
+		{
+                	firstname: req.body.firstname,
+                	lastname: req.body.lastname,
+                	email: req.body.email,
+                	password: req.body.password,
+			password2: req.body.password2    <---Not saved in DB
+           	}
+    		
+    		Example Json Input:
+		{
+  			"firstname" : "Harry",
+  			"lastname" : "Potter",
+  			"email": "idk@yahoo.com",
+ 			"password" : "ginny1",
+  			"password2" : "ginny1"
+		}
+		
+**/user/login ---> **
     
         POST request:  
 		Takes in user email and password, validates that they were entered correctly,    
 		checks the entered info in the database, then logs in the user by passing    
 		an authentication cookie.
+		**The Validator checks if any field is empty and throws an error if any are.
+		
+		Input:
+		{
+                	email: req.body.email,
+                	password: req.body.password,
+           	}
+    		
+    		Example Input:
+		{
+  			"email": "idk@yahoo.com",
+ 			"password" : "ginny1",
+		}
+		
+		
 
-**/user/logout**
+**/user/logout ---> **
     
         GET request:
 		Logs user out by deleting authentication cookie.
 
-**/user/friend**
-    
-        POST request:
+**/user/friend ---> Add Friend**
+    	
+        POST request: 
 		Takes in all fields of the friend schema and adds a new friend to     
 		the user's account by attatching the user's ID to the new friend schema.
+		
+		
 
-**/user/friends**
-    
-        GET request:
+**/user/friends ---> Produce All Friends**
+    	
+        GET request: 
 		Takes in the user's ID, uses it to search for all friend with the     
 		attached ID and returns an array of all the user's friends.
+		If you're using React's useEffect and useState then it will auto 
+		grab the user's info and use the user's ID to produce all friends. 
+		Otherwise, you will need to send the user's data/schema. 
 
-**/user/friends/:id**
+**/user/friends/:id ---> Edit Friend/ Delet Friend**
     
-        PUT request:
+    	
+        PUT request: 
 		Takes in the ID of a specific friend, and the values to be edited    
 		and edits the friend's schema. 
+		
+		
         
         DELETE request:
 		Takes in the ID of a specific friend and deletes their schema     
 		from the database.
 
-**/user/playlist**
+**/user/playlist ---> **
     
+    	Add Playlist
         POST request:
 		Takes in all fields of the playlist schema and adds a new playlist to  
 		the user's account by attatching the user's ID to the new playlist schema.
+		The only required field is the "name". field. 
+		All fields are strings, with "tracks" being an array of strings.
+		
+	Input:
+	{
+		name : "playlist name"
+		tracks : ["songs"]		
+		sharedWith : "id of friend"
+	}
+	
+	Input json example:
+	{
+    		"name" : "Cool List",
+    		"tracks" : "Song1, Song2, Song3, Song4, Song5, Song6, Song7, Song8, Song9, Song10"
+		"sharedWith" : "618995afb580ef597868d661"
+	}
+    
+})
 
-**/user/playlists**
+**/user/playlists ---> **
     
         GET request:
 		Takes in the user's ID, uses it to search for all playlists with  
 		the attached ID and returns an array of all the user's playlists.
+		If you're using React's useEffect and useState then it will auto 
+		grab the user's info and use the user's ID to produce the playlists. 
+		Otherwise, you will need to send the user's data/schema. 
+		
 
-**/user/playlist/id**
+**/user/playlist/id ---> **
     
         PUT request:
 		Takes in the ID of a specific playlist, and the values to be edited  
@@ -219,7 +289,7 @@
 		Takes in the ID of a specific playlist and deletes the schema    
 		from the database.
 
-**/user/authenticated**
+**/user/authenticated ---> **
     
         GET request:
 		Checks if a user is authenticated, meaning they have access to    
