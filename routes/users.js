@@ -122,7 +122,7 @@ router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res
     });
 });
 
-// Edit Friend Name
+// Edit Friend Fields
 router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
     Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
@@ -142,14 +142,20 @@ router.delete('/friend/:id', passport.authenticate('jwt', {session : false}), (r
 //                   Playlist APIs
 /*---------------------------------------------------*/
 // Add Playlist
-router.post('/playlist', passport.authenticate('jwt',{session : false}) ,(req,res)=>{
+router.post('/playlist', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
     const playlist = new Playlist(req.body);
-    playlist.save(err=>{
+    playlist.user = req.user.id;    // add user ID to new playlist
+
+    playlist.save(err => 
+    {
         if(err)
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else{
+        else
+        {
             req.user.playlists.push(playlist);
-            req.user.save(err=>{
+            req.user.save(err =>
+            {
                 if(err)
                     res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
                 else
@@ -160,18 +166,25 @@ router.post('/playlist', passport.authenticate('jwt',{session : false}) ,(req,re
 });
 
 // Get user's playlists
-router.get('/playlists', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    User.findById({_id : req.user._id}).populate('playlists').exec((err,document)=>{
+router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
+    User.findById({_id : req.user._id}).populate('playlists').exec((err,document) => 
+    {
         if(err)
+        {
+            console.log(err);
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else{
+        }
+        else
+        {
             res.status(200).json({playlists : document.playlists, authenticated : true});
         }
     });
 });
 
 // Edit Playlist
-router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
+router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res) => 
+{
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
     .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
     .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
@@ -188,13 +201,10 @@ router.delete('/playlist/:id', passport.authenticate('jwt',{session : false}),(r
 //                   Authenticated API
 /*---------------------------------------------------*/
 
-router.get('/authenticated',passport.authenticate('jwt',{session : false}),(req,res)=>{
+router.get('/authenticated', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
     const {email} = req.user;
     res.status(200).json({isAuthenticated : true, user : {email}});
 });
-
-/*---------------------------------------------------*/
-//                   Spotify API
-/*---------------------------------------------------*/
 
 module.exports = router;
