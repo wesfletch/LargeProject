@@ -21,7 +21,7 @@ const User = mongoose.Schema({
     refresh_token: String,
     top_music: Array,
     top_artists: Array,
-    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'friends'}],
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'playlists'}],
 })
 

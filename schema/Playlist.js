@@ -6,8 +6,9 @@ const reqString = {
 }
 
 const Playlist = mongoose.Schema({
-    user: String,
-    friend: String,
+    name: String,
+    user: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
+    friend: {type: mongoose.Schema.Types.ObjectId, ref: 'Friend', required: false},
     type: String,
     songs: Array,
 })
