@@ -6,7 +6,7 @@ const reqString = {
     required: true
 }
 
-const userSchema = mongoose.Schema({
+const User = mongoose.Schema({
     country: String,
     display_name: String,
     email: String,
@@ -21,10 +21,12 @@ const userSchema = mongoose.Schema({
     refresh_token: String,
     top_music: Array,
     top_artists: Array,
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
+    playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'playlists'}],
 })
 
 // for password encryption
-userSchema.pre('save', function(next)
+User.pre('save', function(next)
 {
     if(!this.isModified('password'))
         return next();
@@ -37,7 +39,7 @@ userSchema.pre('save', function(next)
     });
 });
 
-userSchema.methods.comparePassword = function(password,cb) 
+User.methods.comparePassword = function(password,cb) 
 {
     // no need to hash our password beforehand, bcrypt does this for us
     // just compare plaintext password to (hashed) User password
@@ -50,11 +52,9 @@ userSchema.methods.comparePassword = function(password,cb)
                 return cb(null,isMatch);
             return cb(null,this);
         }
-    });
-
-    
+    });    
 }
 
 //if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
 
-module.exports = user = mongoose.model('users', userSchema)
+module.exports = mongoose.model('users', User)
