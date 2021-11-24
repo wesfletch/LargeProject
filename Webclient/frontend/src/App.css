@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap');
+
+.main {
+  background-image: url("https://drive.google.com/uc?export=view&id=123lwN0xP98fthfJF8NLFyKErmklEyiuH");
+}
+
+.signIn {
+  font-size: 2.8rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+
+.guest {
+  font-size: 1.4rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+
+.btn-signInBtn {
+  background-color: rgb(156, 39, 176);
+  color: rgb(255, 255, 255);
+  border: 2px rgb(156, 39, 176);
+}
+
+.btn-guestBtn {
+  color: rgb(255, 255, 255);
+  border-radius: 2px; 
+  border-color: rgb(156, 39, 176);
+}
+
+.btn-big {
+  padding: 0.3rem 10rem;
+  font-size: 1.4rem;
+}
+
+.btn-bigG {
+  padding: 0.3rem 6.5rem;
+  font-size: 1.4rem;
+}
+
+.mainForms {
+  background-color: rgb(23,23,23);
+  padding: 10px;
+  margin-top: 20%;
+  margin-bottom: 80%;
+  border-width: 10px;
+  border-style: solid;
+  border-color: rgb(19,19,19);
+  font-size: 1.2rem;
+}
+
+.forms {
+  color: rgb(255, 255, 255);
+  text-align: left;
+}
+
+.noAccount {
+  color: rgb(255, 255, 255);
+  text-align: center;
+  margin-top: 5%;
+}
+
+.formElement {
+  margin-bottom: 3%;
+}
+
+.form-control:focus {
+  border-color: rgb(89, 31, 99);
+  box-shadow: 0 0 0 0.1rem rgb(156, 39, 176);
+}
+
+.links {
+  color: rgb(255, 255, 255);
+  text-align: center;
+  margin-top: 5%;
+}
