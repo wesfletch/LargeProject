@@ -36,18 +36,6 @@ app.listen(PORT, () =>
     console.log('Server listening on port ' + PORT);
 });
 
-///////////////////////////////////////////////////
-// For Heroku deployment
-// Server static assets if in production
-if (process.env.NODE_ENV === 'production')
-{
-    // Set static folder
-    app.use(express.static('Webclient/frontend/build'));app.get('*', (req, res) =>
-    {
-        res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
-    });
-}
-
 // Passport middleware
 app.use(passport.initialize());
 
@@ -62,3 +50,16 @@ app.use("/users", require("./routes/users"));
 
 // add the /fetch router (/routes/fetch.js)
 app.use("/fetch", require("./routes/fetch"))
+
+///////////////////////////////////////////////////
+// For Heroku deployment
+// Server static assets if in production
+if (process.env.NODE_ENV === 'production')
+{
+    // Set static folder
+    app.use(express.static('Webclient/frontend/build'));
+    app.get('*', (req, res) =>
+    {
+        res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
+    });
+}
