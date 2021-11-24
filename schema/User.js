@@ -43,8 +43,6 @@ User.methods.comparePassword = function(password,cb)
 {
     // no need to hash our password beforehand, bcrypt does this for us
     // just compare plaintext password to (hashed) User password
-    console.log(password);
-    console.log(this.password);
     bcrypt.compare(password, this.password, (err,isMatch) => 
     {
         if(err)
