@@ -22,7 +22,7 @@ const User = mongoose.Schema({
     top_music: Array,
     top_artists: Array,
     friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
-    playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'playlists'}],
+    playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
 })
 
 // for password encryption
@@ -57,4 +57,4 @@ User.methods.comparePassword = function(password,cb)
 
 //if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
 
-module.exports = mongoose.model('users', User)
+module.exports = mongoose.model('User', User)
