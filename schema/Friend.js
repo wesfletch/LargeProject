@@ -24,4 +24,5 @@ const Friend = mongoose.Schema({
 
 //if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
 
-module.exports = mongoose.model('friends', Friend)
+// register the model
+module.exports = mongoose.model('Friend', Friend)

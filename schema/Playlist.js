@@ -15,4 +15,4 @@ const Playlist = mongoose.Schema({
 
 //if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
 
-module.exports = mongoose.model('playlists', Playlist)
+module.exports = mongoose.model('Playlist', Playlist)
