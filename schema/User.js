@@ -24,6 +24,7 @@ const User = mongoose.Schema({
     friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
 })
+User.index({display_name: 'text', email: 'text'});
 
 // for password encryption
 User.pre('save', function(next)

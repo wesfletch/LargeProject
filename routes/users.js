@@ -79,15 +79,33 @@ router.get('/logout', passport.authenticate('jwt', {session : false}), (req,res)
     res.status(200).json({user:{email : ""},success : true});
 });
 
-router.get('/users', passport.authenticate('jwt', {session : false}), (req, res) =>
+// partial text search of User schema $text index
+router.post('/search/users', passport.authenticate('jwt', {session : false}), (req, res) =>
 {
-    User.find({}, function(err, users) {
+    const query = req.body.query;
+    const limit = req.body.limit;
+    var page = Math.max(0, req.body.page);
 
+    User.aggregate([{$match: 
+                    {$or:  [{display_name: new RegExp(query, 'i')}, 
+                            {email: new RegExp(query, 'i')}]}}])
+        .limit(limit)
+        .skip(limit * page)
+        .exec((err, users) =>
+    {
         if(err)
+        {
+            console.log(err);
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+
+        }
         else
-            res.status(200).json({users: users});
+        {
+            console.log(users);
+            res.status(200).json({users : users});
+        }
     });
+
 });
 
 /*---------------------------------------------------*/
