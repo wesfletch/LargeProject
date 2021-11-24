@@ -76,7 +76,18 @@ router.post('/login', passport.authenticate('local', {session : false}), (req,re
 router.get('/logout', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
     res.clearCookie('access_token');
-    res.json({user:{email : ""},success : true});
+    res.status(200).json({user:{email : ""},success : true});
+});
+
+router.get('/users', passport.authenticate('jwt', {session : false}), (req, res) =>
+{
+    User.find({}, function(err, users) {
+
+        if(err)
+            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        else
+            res.status(200).json({users: users});
+    });
 });
 
 /*---------------------------------------------------*/
