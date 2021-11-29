@@ -83,12 +83,15 @@ spotifyRouter.post("/artists/", (req, res) => {
 // Search tracks by name/get TrackID
 //This returns an array of matching tracks (name, id, artist, song preview link, song link)
 spotifyRouter.post("/track/", (req, res) => {
+    
+    console.log(req.body);
+
     spotifyApi.searchTracks(req.body.track,{limit: 10}).then((data) => {
         var tracks = [];
         if(!data.body.tracks.items[0]){
             const text = {"Error": "No tracks found"};
             console.log("No tracks found");
-            res.send(text.Error);
+            res.status(500).send(text.Error);
             return res;
         };
         data.body.tracks.items.forEach((track, i) => {
@@ -101,16 +104,16 @@ spotifyRouter.post("/track/", (req, res) => {
             });
         });
         console.log("Matching tracks found");
-        res.json(tracks);
+        res.status(200).json(tracks);
         return tracks;
     }).catch((err) =>console.error(err));
 });
 
 //Get available genre seeds
 //This returns an array of all genres 
-spotifyRouter.post("/genres", (req, res) => {
+spotifyRouter.get("/genres", (req, res) => {
     spotifyApi.getAvailableGenreSeeds().then((data) => {
-        res.json(data.body.genres)
+        res.status(200).json(data.body.genres)
     }).catch((err) => console.log('Error getting genre list!', err)); 
   
 });
@@ -142,7 +145,7 @@ spotifyRouter.post("/recs", (req, res) => {
             });
         });
         console.log("Recommendations found");
-        res.json(tracks);
+        res.status(200).json(tracks);
         return tracks;
     }).catch((err) => console.log('Error fetching reccomendations!', err)); 
 });
