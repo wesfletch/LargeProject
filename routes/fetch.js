@@ -30,7 +30,7 @@ setInterval(token, 3600000);
 
 // Search artists by name/get ArtistID
 //This returns the artist with the exact matching name (name, id, image link)
-spotifyRouter.get("/artist/", (req, res) => {
+spotifyRouter.post("/artist/", (req, res) => {
     spotifyApi.searchArtists(req.body.artist).then((data) => {
         var match = {};
         data.body.artists.items.every((artist, i) => {
@@ -40,7 +40,7 @@ spotifyRouter.get("/artist/", (req, res) => {
                     id : artist.id,
                     image : artist.images[2].url
                 }
-                res.json(match);
+                res.status(200).json(match);
                 console.log("Artist " + match.name + " found\nArtist ID: " + match.id );
                 return match;
             }
@@ -49,7 +49,7 @@ spotifyRouter.get("/artist/", (req, res) => {
  
             const text = {"Error": "Artist not found"};
             console.log("Artist not found");
-            res.send(text.Error);
+            res.status(500).send(text.Error);
             return res;
             
         }
@@ -58,7 +58,7 @@ spotifyRouter.get("/artist/", (req, res) => {
 
 // Search artists by name
 //This returns an array of matching artists (name, id, image link)
-spotifyRouter.get("/artists/", (req, res) => {
+spotifyRouter.post("/artists/", (req, res) => {
     spotifyApi.searchArtists(req.body.artist, {limit: 10}).then((data) => {
         var artists = [];
         if(!data.body.artists.items[0]){
@@ -82,7 +82,7 @@ spotifyRouter.get("/artists/", (req, res) => {
 
 // Search tracks by name/get TrackID
 //This returns an array of matching tracks (name, id, artist, song preview link, song link)
-spotifyRouter.get("/track/", (req, res) => {
+spotifyRouter.post("/track/", (req, res) => {
     spotifyApi.searchTracks(req.body.track,{limit: 10}).then((data) => {
         var tracks = [];
         if(!data.body.tracks.items[0]){
@@ -108,7 +108,7 @@ spotifyRouter.get("/track/", (req, res) => {
 
 //Get available genre seeds
 //This returns an array of all genres 
-spotifyRouter.get("/genres", (req, res) => {
+spotifyRouter.post("/genres", (req, res) => {
     spotifyApi.getAvailableGenreSeeds().then((data) => {
         res.json(data.body.genres)
     }).catch((err) => console.log('Error getting genre list!', err)); 
@@ -117,7 +117,7 @@ spotifyRouter.get("/genres", (req, res) => {
 
 //Get Recommendations Based on Seeds
 //This returns an array of 10 songs (name, id, artist, song preview link, song link)
-spotifyRouter.get("/recs", (req, res) => {
+spotifyRouter.post("/recs", (req, res) => {
     var tracks =[];
     var seeds = {
         ...req.body,
