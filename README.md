@@ -1,29 +1,49 @@
-# All off my updated files can be found in the "API_Things" folder.   
-
 # Updates:
-    **I updated the User schema
+    -Updated the login and registration endpoints to no longer require the 
+     validation files. The valisation code is now in the endpoint coding.
+    
+    -Updated the "delete friend", as it was deleting the friend from the database
+    not the user's friend list.
+    
+    -Updated the "add friend" endpoint so now it adds other users, instead of adding 
+     a friend like a contact app.
+    
+    -Updated the "add friend" endpoint so now it does validation checks and simultaneously 
+    adds a user to the friend list of the friend they are adding. (the simultaneous add was 
+    iimplemented due to timiming but the code can easily be updated to instead ask the added
+    user if they want to also add the user to their friend list, if it's not a hassle to
+    the front end and web app).
+    
+    -Removed the "edit friend" endpoint as a result of the above change. So, users cannot 
+     edit other users' profiles.
+    
+    -Removed the "isAuthenticated" endpoint.
+    
+    -Added the "edit user" endpoint.
+    
+    -Added the "forgot password" and "reset password" endpoint.
+    
+    -Added the "send email" functionality, so users will get an email when they register and
+     when they forget their password.
+    
+    -Updated the User model
+    	-Added resetPasswordToken and resetPasswordExpire fields
+	-Removed the firstName and lastName fields
+	-Added the "name" field in place of the above fields
+    
+    -Added swaggerHub documenttion using swaggerUI and swaggerJsDoc to the spotify endpoints
+     but could not get it to show up in swaggerHub. I'll need assistance with this.
+    
+    ------------------------------------------------------------------------
     -I added a field for images on the User and Friend schema incase we want to 
      implement profile pictues.
-    -I added a "sharedWith" field to the playlist schema so the friend a playlist 
+    -I added a "createdWith" field to the playlist schema so the friend a playlist 
      was made with can be saved.
     -I added the Spotify Api.
      
      There are now two API routes, /User and /Fetch
 		- /User is for all user related requests
 		- /Fetch is for all Spotify API requests
-
-## The New User Schema:</br>
-    name: {type: String, required: true},
-    email: {type: String, required: true},
-    password: {type: String, required: true},
-    image:{type: String},
-    date: {type: Date, default: Date.now},
-    fav_genres : {type : [String]},
-    fav_artists : {type : [String]},
-    fav_tracks : {type : [String]},
-    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'User'}],
-    playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
-
 
 ## Information on the Spotify API:</br>
 	In order to get recommendations, the Spotify API only accepts ArtistIDs and TrackIDs, 
@@ -40,7 +60,7 @@
 												     
 ## **Information for /Fetch**
     
-**/fetch/artist ---> Get Artist Info of Artist With Exact Matching Name**
+**/fetch/artist**
 		
         GET request:
 		Takes in an artist's name, searches it in Spotify's database and returns    
@@ -59,7 +79,7 @@
         No match response:
         {"Artist not found"}
 
-**/fetch/artists ---> Get Array Of Matching Artists**
+**/fetch/artists**
     
         GET request:
 		Takes in an artist's name, searches it in Spotify's database and returns    
@@ -86,7 +106,7 @@
         {"Artists not found"}
 
 
-**/fetch/track ---> Get Array Of Matching Tracks**
+**/fetch/track**
     
         GET request:
 		Takes in a track name, searches it in Spotify's database and returns    
@@ -114,7 +134,7 @@
         No match response:
         {"Tracks not found"}
 
-**/fetch/genres ---> Get Array Of All Available Genres**
+**/fetch/genres**
     
         GET request:
 		Takes in no input. Returns an unnamed array of all of Spotify's available genres.
@@ -129,7 +149,7 @@
             "anime"....
         ]
 
-**/fetch/recs ---> Get Array Of Recommended Tracks**
+**/fetch/recs**
     
         GET request:
 		Takes in only five seeds/inputs made up of artist IDs, track IDs, and genres. 
@@ -170,130 +190,60 @@
 
 ## **Information for /User:**
 
-**/user/register ---> **
+**/user/register**
     
         POST request:
 		Takes in the fields on the User schena, validates all fields, checks the    
 		database for matching email and password pair, and then saves the user    
 		to the database.
-		
-		**The Validator requires that two passwords be entered during registration, 
-		and checks that they match. Though, only one password is saved in the database.
-		It also checks if any field is empty and that the email address is valid.  
-		It throws an error if any validation fails.
-		All fields are required.
-		
-		Input:
-		{
-                	firstname: req.body.firstname,
-                	lastname: req.body.lastname,
-                	email: req.body.email,
-                	password: req.body.password,
-			password2: req.body.password2    <---Not saved in DB
-           	}
-    		
-    		Example Json Input:
-		{
-  			"firstname" : "Harry",
-  			"lastname" : "Potter",
-  			"email": "idk@yahoo.com",
- 			"password" : "ginny1",
-  			"password2" : "ginny1"
-		}
-		
-**/user/login ---> **
+    
+**/user/login**
     
         POST request:  
 		Takes in user email and password, validates that they were entered correctly,    
 		checks the entered info in the database, then logs in the user by passing    
 		an authentication cookie.
-		**The Validator checks if any field is empty and throws an error if any are.
-		
-		Input:
-		{
-                	email: req.body.email,
-                	password: req.body.password,
-           	}
-    		
-    		Example Input:
-		{
-  			"email": "idk@yahoo.com",
- 			"password" : "ginny1",
-		}
-		
-		
 
-**/user/logout ---> **
+**/user/logout**
     
         GET request:
 		Logs user out by deleting authentication cookie.
 
-**/user/friend ---> Add Friend**
-    	
-        POST request: 
+**/user/friend**
+    
+        POST request:
 		Takes in all fields of the friend schema and adds a new friend to     
 		the user's account by attatching the user's ID to the new friend schema.
-		
-		
 
-**/user/friends ---> Produce All Friends**
-    	
-        GET request: 
+**/user/friends**
+    
+        GET request:
 		Takes in the user's ID, uses it to search for all friend with the     
 		attached ID and returns an array of all the user's friends.
-		If you're using React's useEffect and useState then it will auto 
-		grab the user's info and use the user's ID to produce all friends. 
-		Otherwise, you will need to send the user's data/schema. 
 
-**/user/friends/:id ---> Edit Friend/ Delet Friend**
+**/user/friends/:id**
     
-    	
-        PUT request: 
+        PUT request:
 		Takes in the ID of a specific friend, and the values to be edited    
 		and edits the friend's schema. 
-		
-		
         
         DELETE request:
 		Takes in the ID of a specific friend and deletes their schema     
 		from the database.
 
-**/user/playlist ---> **
+**/user/playlist**
     
-    	Add Playlist
         POST request:
 		Takes in all fields of the playlist schema and adds a new playlist to  
 		the user's account by attatching the user's ID to the new playlist schema.
-		The only required field is the "name". field. 
-		All fields are strings, with "tracks" being an array of strings.
-		
-	Input:
-	{
-		name : "playlist name"
-		tracks : ["songs"]		
-		sharedWith : "id of friend"
-	}
-	
-	Input json example:
-	{
-    		"name" : "Cool List",
-    		"tracks" : "Song1, Song2, Song3, Song4, Song5, Song6, Song7, Song8, Song9, Song10"
-		"sharedWith" : "618995afb580ef597868d661"
-	}
-    
-})
 
-**/user/playlists ---> **
+**/user/playlists**
     
         GET request:
 		Takes in the user's ID, uses it to search for all playlists with  
 		the attached ID and returns an array of all the user's playlists.
-		If you're using React's useEffect and useState then it will auto 
-		grab the user's info and use the user's ID to produce the playlists. 
-		Otherwise, you will need to send the user's data/schema. 
-		
 
-**/user/playlist/id ---> **
+**/user/playlist/id**
     
         PUT request:
 		Takes in the ID of a specific playlist, and the values to be edited  
@@ -303,7 +253,7 @@
 		Takes in the ID of a specific playlist and deletes the schema    
 		from the database.
 
-**/user/authenticated ---> **
+**/user/authenticated**
     
         GET request:
 		Checks if a user is authenticated, meaning they have access to    
