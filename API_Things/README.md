@@ -9,10 +9,10 @@
      a friend like a contact app.
     
     -Updated the "add friend" endpoint so now it does validation checks and simultaneously 
-    adds a user to the friend list of the friend they are adding. (the simultaneous add was 
-    iimplemented due to timiming but the code can easily be updated to instead ask the added
-    user if they want to also add the user to their friend list, if it's not a hassle to
-    the front end and web app).
+     adds a user to the friend list of the friend they are adding. (the simultaneous add was 
+     implemented due to timiming but the code can easily be updated to instead ask the added
+     user if they want to also add the user to their friend list, if it's not a hassle to
+     the front end and web app).
     
     -Removed the "edit friend" endpoint as a result of the above change. So, users cannot 
      edit other users' profiles.
