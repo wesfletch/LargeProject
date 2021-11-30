@@ -83,7 +83,7 @@
         No match response:
         {"Artist not found"}
 
-**Get A List Of Matching Artists*
+**Get A List Of Matching Artists**</br>
 **/fetch/artists**
     
         GET request:
@@ -110,7 +110,7 @@
         No match response:
         {"Artists not found"}
 
-**Get A List Of Matching Tracks**
+**Get A List Of Matching Tracks**</br>
 **/fetch/track**
     
         GET request:
@@ -139,7 +139,7 @@
         No match response:
         {"Tracks not found"}
 
-**Get All Genres**
+**Get All Genres** </br>
 **/fetch/genres**
     
         GET request:
@@ -155,7 +155,7 @@
             "anime"....
         ]
 
-**Get Recommendations**
+**Get Recommendations**</br>
 **/fetch/recs**
     
         GET request:
@@ -172,7 +172,7 @@
             seed_artists: ['ArtistID']
             seed_genres: ['Genre Name']
             seed_tracks: ['TrackID']
-       	    }
+	    }
 	
             Example input json:
             {
@@ -197,10 +197,10 @@
 
 ## **Information for /User:**
 
-**Registration**
+**Registration**</br>
 **/user/register**
     
-        POST request:
+    	POST request:
 		Takes in the fields on the User schena, validates all fields, checks the    
 		database for matching email and password pair, and then saves the user    
 		to the database.
@@ -226,10 +226,10 @@
 		Status(500): "Error saving to database."
 		Status(500): "Error: User saved. Email could not be sent.",
 
-**Login**
+**Login**</br>
 **/user/login**
     
-        POST request:  
+    	POST request:  
 		Takes in user email and password, validates that they were entered correctly,    
 		checks the entered info in the database, then logs in the user by passing    
 		an authentication cookie.
@@ -246,14 +246,15 @@
 	Error responses:
 		Status(400): "Error: Please provide an email and password."
 		
-**Logout**
+**Logout**</br>
 **/user/logout**
-    
-        GET request:
+	
+	GET request:
 		Logs user out by deleting authentication cookie.
 		
-**Update User**
+**Update User**</br>
 **/update/:id**
+
 	PUT request:
 		Updates the user's profile information. Can be used to update any the following
 		fields: name, email, image, fav_genres, fav_artists, fav_tracks. All fields do 
@@ -275,8 +276,9 @@
 	Error responses:
 		Status(500): "Error editing user."
 
-**Forgot Password**
+**Forgot Password**</br>
 **/forgot**
+
 	POST request:
 		Takes in an email address, checks if it exists in the database and 
 		then sends the user a "Reset Password" email that has a reset password 
@@ -295,8 +297,9 @@
 		Status(500): "Error sending email."
 		Status(500): "An Error Occured."
 	
-**Reset Password**
+**Reset Password**</br>
 **/reset/:resetToken**
+
 	PUT request:
 		Takes in the reset token from the url and compares it with the reset token in the user's schema
 		to authenticate it. Takes in two password fields, confirms that they match and then saves the new
@@ -316,7 +319,7 @@
 		Status(400): "Error: Passwords must match."
 		Status(500): "Error: Unable to update password."
 
-**Add Friend**
+**Add Friend**</br>
 **/user/add**
     
         POST request:
@@ -339,7 +342,7 @@
 		Status(500): "Error adding friends."
 		Status(400): "Error: User is already your friend."
 		
-**Get All Friends**
+**Get All Friends**</br>
 **/user/friends**
     
         GET request:
@@ -355,7 +358,7 @@
 
 
 
-**Delete a Friend**
+**Delete a Friend**</br>
 **/user/friend/:id**
     
         DELETE request:
@@ -369,7 +372,7 @@
 	Error responses:
 		Status(500): "Error deleting friend."
 
-**Add Playlist**
+**Add Playlist**</br>
 **/user/addplaylist**
     
         POST request:
@@ -389,7 +392,7 @@
 		Status(500): "Error adding playlist."
 		Status(500): "Error saving playlist."
 
-**Get All Playlists**
+**Get All Playlists**</br>
 **/user/playlists**
     
         GET request:
@@ -403,33 +406,36 @@
 	Error responses:
 		Status(500): "Error fetching playlists."
 		
-**Delete Playlist"
+**Edit Playlist"**</br>
 **/user/playlist/id**
     
         PUT request:
 		Gets the ID of a specific playlist from the url and takes in 
-		the values to be edited  and edits the playlist's schema. 
+		the values to be edited and edits the playlist's schema. 
 		
-		Example Input:
-		{
-			"name" : "string",
-			"tracks" : "S1, S2, S3, S4, S5, S6, S7, S8, S9, S10"
-		}
+	Example Input:
+	{
+		"name" : "string",
+		"tracks" : "S1, S2, S3, S4, S5, S6, S7, S8, S9, S10"
+	}
 	
-		Success response:
-			Status(200): "Successfully Updated Paylist."
+	Success response:
+		Status(200): "Successfully Updated Paylist."
 		
-		Error responses:
-			Status(500): "Error updating playlist."
+	Error responses:
+		Status(500): "Error updating playlist."
+			
+**Delete Playlist"**</br>
+**/user/playlist/id**		
 		
         DELETE request:
 		Gets the ID of a specific playlist from the url and deletes it    
 		from the database.
 		
-		Success response:
-			Status(200): "Successfully Deleted Paylist."
+	Success response:
+		Status(200): "Successfully Deleted Paylist."
 		
-		Error responses:
-			Status(500): "Error deleting playlist."
+	Error responses:
+		Status(500): "Error deleting playlist."
 
 
