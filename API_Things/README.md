@@ -1,7 +1,35 @@
 # Updates:
+    -Updated the login and registration endpoints to no longer require the 
+    validation files. The valisation code is now in the endpoint coding.
+    -Updated the "delete friend", as it was deleting the friend from the database
+    not the user's friend list.
+    -Updated the "add friend" endpoint so now it adds other users, instead of adding 
+    a friend like a contact app.
+    -Updated the "add friend" endpoint so now it does validation checks and simultaneously 
+    adds a user to the friend list of the friend they are adding. (the simultaneous add was 
+    iimplemented due to timiming but the code can easily be updated to instead ask the added
+    user if they want to also add the user to their friend list, if it's not a hassle to
+    the front end and web app).
+    -Removed the "edit friend" endpoint as a result of the above change. So, users cannot 
+    edit other users' profiles.
+    -Removed the "isAuthenticated" endpoint.
+    -Added the "edit user" endpoint.
+    -Added the "forgot password" and "reset password" endpoint.
+    -Added the "send email" functionality, so users will get an email when they register and
+    when they forget their password.
+    -Updated the User model
+    	-Added resetPasswordToken and resetPasswordExpire fields
+	-Removed the firstName and lastName fields
+	-Added the "name" field in place of the above fields
+    
+    
+    -Added swaggerHub documenttion using swaggerUI and swaggerJsDoc to the spotify endpoints
+    but could not get it to show up in swaggerHub. I'll need assistance with this.
+    
+    ------------------------------------------------------------------------
     -I added a field for images on the User and Friend schema incase we want to 
      implement profile pictues.
-    -I added a "sharedWith" field to the playlist schema so the friend a playlist 
+    -I added a "createdWith" field to the playlist schema so the friend a playlist 
      was made with can be saved.
     -I added the Spotify Api.
      
