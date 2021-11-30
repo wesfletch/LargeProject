@@ -406,7 +406,7 @@
 	Error responses:
 		Status(500): "Error fetching playlists."
 		
-**Edit Playlist"</br>
+**Edit Playlist"**</br>
 **/user/playlist/id**
     
         PUT request:
@@ -425,7 +425,7 @@
 	Error responses:
 		Status(500): "Error updating playlist."
 			
-**Delete Playlist"</br>
+**Delete Playlist"**</br>
 **/user/playlist/id**		
 		
         DELETE request:
