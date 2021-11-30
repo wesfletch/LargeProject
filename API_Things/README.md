@@ -72,7 +72,7 @@
 		the exact match. The response contains the artist's name, ID, and image.
 
         Input json: 
-	    {artist: "artist's name"}
+		{artist: "artist's name"}
 
         Success response:
 		Status(200):
@@ -82,8 +82,8 @@
             			image : artist.images[2].url
         		}
 
-       	No match response:
-        	{"Artist not found"}
+	No match response:
+		{"Artist not found"}
 	
 	Error responses:
 		500:
@@ -104,8 +104,8 @@
 		contains all the matching artists' names, IDs, and images. The max array   
 		size is set at 10.
 
-        Input json: 
-	    {artist: "artist's name"}
+	Input json: 
+		{artist: "artist's name"}
 
          Success response: 
 	 	Status(200):
@@ -142,8 +142,8 @@
 		the name, ID, artist, preview link, and track link of all the matching tracks.   
 		The max array size is set at 10.
 	
-        Input json:   
-	    {artist: "track name"}
+	Input json:   
+		{artist: "track name"}
 
          Sucess response: 
 	 	200:
@@ -212,21 +212,21 @@
 		It returns an array named "tracks" containing the name, ID, artist,    
 		preview link, and track link of all the reccomended tracks.
 
-	    Input json:
+	Input json:
 	    {
             seed_artists: ['ArtistID']
             seed_genres: ['Genre Name']
             seed_tracks: ['TrackID']
 	    }
 	
-            Example input json:
+	Example input json:
             {
            	 seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
           	  seed_genres: ['hip-hop', 'r-n-b']
            	 seed_tracks: '3A2yGHWIzmGEIolwonU69h'
             }
 
-           Sucess Response:
+	Sucess Response:
 	   	200:
            		tracks= [ 
                 		{
@@ -262,12 +262,12 @@
 		to the database.
 	
 	Input:
-	{
+	   {
 		"name": "string",
 		"email": "string",
 		"password": "string",
 		"password2": "string",
-	}
+	   }
 	
 	Success response:
 		Status(200): "User successfully saved."
@@ -401,7 +401,7 @@
 **Get All Friends**</br>
 **/user/friends**
     
-        GET request:
+    	GET request:
 		Uses the user's ID to search for all friends within the user's     
 		friend list and returns a document with an array of objectIDs of 
 		all the user's friends.
@@ -417,7 +417,7 @@
 **Delete a Friend**</br>
 **/user/friend/:id**
     
-        DELETE request:
+    	DELETE request:
 		Takes in the friend's ID from the url, uses it to search for the friend
 		in the user's friend list, then if found deletes the friend from the 
 		user's friend list.
@@ -431,7 +431,7 @@
 **Add Playlist**</br>
 **/user/addplaylist**
     
-        POST request:
+    	POST request:
 		Takes in all fields of the playlist schema and adds a new playlist to  
 		the user's account.
 		
@@ -451,7 +451,7 @@
 **Get All Playlists**</br>
 **/user/playlists**
     
-        GET request:
+    	GET request:
 		Uses the user's ID to search for all playlists within the user's     
 		playlist list and returns a document with an array of objectIDs 
 		of all the user's playlists.
@@ -465,7 +465,7 @@
 **Edit Playlist"**</br>
 **/user/playlist/id**
     
-        PUT request:
+    	PUT request:
 		Gets the ID of a specific playlist from the url and takes in 
 		the values to be edited and edits the playlist's schema. 
 		
@@ -484,7 +484,7 @@
 **Delete Playlist"**</br>
 **/user/playlist/id**		
 		
-        DELETE request:
+	DELETE request:
 		Gets the ID of a specific playlist from the url and deletes it    
 		from the database.
 		
