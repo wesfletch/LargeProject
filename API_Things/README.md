@@ -82,8 +82,8 @@
             			image : artist.images[2].url
         		}
 
-	No match response:
-		{"Artist not found"}
+		No match response:
+			{"Artist not found"}
 	
 	Error responses:
 		500:
