@@ -31,7 +31,7 @@
      when they forget their password.
     
     -Updated the User model
-    	-Added resetPasswordToken and resetPasswordExpire fields
+	-Added resetPasswordToken and resetPasswordExpire fields
 	-Removed the firstName and lastName fields
 	-Added the "name" field in place of the above fields
     
