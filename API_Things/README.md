@@ -31,9 +31,9 @@
      when they forget their password.
     
     -Updated the User model
-    	-Added resetPasswordToken and resetPasswordExpire fields
-	-Removed the firstName and lastName fields
-	-Added the "name" field in place of the above fields
+		-Added resetPasswordToken and resetPasswordExpire fields
+		-Removed the firstName and lastName fields
+		-Added the "name" field in place of the above fields
     
     -Added swaggerHub documenttion using swaggerUI and swaggerJsDoc to the spotify endpoints
      but could not get it to show up in swaggerHub. I'll need assistance with this.
