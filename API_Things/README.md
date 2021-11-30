@@ -67,33 +67,33 @@
 **Get One Artist**   
 **/fetch/artist**
 		
-        GET request:
+	GET request:
 		Takes in an artist's name, searches it in Spotify's database and returns    
 		the exact match. The response contains the artist's name, ID, and image.
 
-        Input json: 
+	Input json: 
 		{artist: "artist's name"}
 
-        Success response:
-		Status(200):
-        		{
-         	   		name : artist.name,
-   				id : artist.id,
-            			image : artist.images[2].url
-        		}
+	Success response:
+		200:
+			{
+				name : artist.name,
+				id : artist.id,
+				image : artist.images[2].url
+			}
 
-	    No match response:
-		    {"Artist not found"}
+	No match response:
+		{"Artist not found"}
 	
-	    Error responses:
-		    500:
-           	    	    description: artist not found
-  	     	    401:
-           		    description: Bad or expired token
-  	     	    403:
-           		    description: Bad OAuth request
-  	     	    429:
-           		    description: The app has exceeded its rate limits
+	Error responses:
+		500:
+			description: artist not found
+		401:
+			description: Bad or expired token
+		403:
+			description: Bad OAuth request
+		429:
+			description: The app has exceeded its rate limits
 
 **Get A List Of Matching Artists**</br>
 **/fetch/artists**
@@ -136,74 +136,74 @@
 **Get A List Of Matching Tracks**</br>
 **/fetch/track**
     
-        GET request:
+	GET request:
 		Takes in a track name, searches it in Spotify's database and returns    
 		an array of possible matches. It returns an array named "tracks" containing    
 		the name, ID, artist, preview link, and track link of all the matching tracks.   
 		The max array size is set at 10.
 	
-	    Input json:   
-		    {artist: "track name"}
+	Input json:   
+		{artist: "track name"}
 
-        Sucess response: 
-	 	200:
-            		tracks= [ 
-                		{
-                    		    "name": track.name,
-                    		    "id": track.id,
-                    		    "artist": track.artists[0].name,
-                    		    "preview": track.preview_url,
-                    		    "url_link": track.external_urls.spotify
-                		},
-                		{},
-                		{},
-                		.......
-            			]
+	Sucess response: 
+		200:
+			tracks= [ 
+				{
+					"name": track.name,
+					"id": track.id,
+					"artist": track.artists[0].name,
+					"preview": track.preview_url,
+					"url_link": track.external_urls.spotify
+				},
+				{},
+				{},
+				.......
+				]
 
-        No match response:
-        	{"Tracks not found"}
+	No match response:
+		{"Tracks not found"}
 	
-	    Error responses:
-		    500:
-           		    description: song not found
-  	     	    401:
-           		    description: Bad or expired token
-  	     	    403:
-           		    description: Bad OAuth request
-  	     	    429:
-			    description: The app has exceeded its rate limits
+	Error responses:
+		500:
+			description: song not found
+		401:
+			description: Bad or expired token
+		403:
+			description: Bad OAuth request
+		429:
+			description: The app has exceeded its rate limits
 
 **Get All Genres** </br>
 **/fetch/genres**
     
-        GET request:
+	GET request:
 		Takes in no input. Returns an unnamed array of all of Spotify's available genres.
 
-        Success Response:
+	Success Response:
 		200:
-        	  [
-            		"acoustic",
-            		"afrobeat",
-           		 "alt-rock",
-            		"alternative",
-            		"ambient",
-           		 "anime"....
+		[
+			"acoustic",
+			"afrobeat",
+			"alt-rock",
+			"alternative",
+			"ambient",
+			"anime"....
         	   ]
 	
-	    Error responses:
-		    500:
-           		    description: Error connecting to Spotify
-  	     	    401:
-           		    description: Bad or expired token
-  	     	    403:
-           		    description: Bad OAuth request
-  	     	   429:
-			    description: The app has exceeded its rate limits
+	Error responses:
+		500:
+			description: Error connecting to Spotify
+		401:
+			description: Bad or expired token
+		403:
+			description: Bad OAuth request
+		429:
+			description: The app has exceeded its rate limits
 
 **Get Recommendations**</br>
 **/fetch/recs**
     
-        GET request:
+	GET request:
 		Takes in only five seeds/inputs made up of artist IDs, track IDs, and genres. 
 		The seeds can be any combination of the 3 fields (i.e. 3 traaks and 2 genres, or    
 		4 artists and 1 genre, or 2 tracks, 2 genres, and 1 artist).     
@@ -212,62 +212,62 @@
 		It returns an array named "tracks" containing the name, ID, artist,    
 		preview link, and track link of all the reccomended tracks.
 
-	    Input json:
-	        {
-                seed_artists: ['ArtistID']
-                seed_genres: ['Genre Name']
-                seed_tracks: ['TrackID']
-	        }
+	Input json:
+		{
+			seed_artists: ['ArtistID']
+			seed_genres: ['Genre Name']
+			seed_tracks: ['TrackID']
+		}
 	
-	    Example input json:
-                {
-           	      seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
-          	      seed_genres: ['hip-hop', 'r-n-b']
-           	      seed_tracks: '3A2yGHWIzmGEIolwonU69h'
-                }
+	Example input json:
+		{
+			seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
+			seed_genres: ['hip-hop', 'r-n-b']
+			seed_tracks: '3A2yGHWIzmGEIolwonU69h'
+		}
 
-	    Sucess Response:
-	   	    200:
-           		    tracks= [ 
-                		    {
-                    		    "name": track.name,
-                    		    "id": track.id,
-                    		    "artist": track.artists[0].name,
-                    		    "preview": track.preview_url,
-                    		    "url_link": track.external_urls.spotify
-                		},
-                		{},
-                		{},
-                		.......
-            		    ]
+	Sucess Response:
+		200:
+			tracks= [ 
+				{
+					"name": track.name,
+					"id": track.id,
+					"artist": track.artists[0].name,
+					"preview": track.preview_url,
+					"url_link": track.external_urls.spotify
+				},
+				{},
+				{},
+				.......
+			]
 	    
-		Error responses:
-			500:
-           			description: Error getting recommendations
-  	     		401:
-           			description: Bad or expired token
-  	     		403:
-           			description: Bad OAuth request
-  	     		429:
-				description: The app has exceeded its rate limits
+	Error responses:
+		500:
+			description: Error getting recommendations
+		401:
+			description: Bad or expired token
+		403:
+			description: Bad OAuth request
+		429:
+			description: The app has exceeded its rate limits
 
 ## **Information for /User:**
 
 **Registration**</br>
 **/user/register**
 
-    	POST request:
+	POST request:
 		Takes in the fields on the User schena, validates all fields, checks the    
 		database for matching email and password pair, and then saves the user    
 		to the database.
 	
 	Input:
-	   {
+		{
 		"name": "string",
 		"email": "string",
 		"password": "string",
 		"password2": "string",
-	   }
+		}
 	
 	Success response:
 		Status(200): "User successfully saved."
@@ -285,16 +285,16 @@
 **Login**</br>
 **/user/login**
     
-    	POST request:  
+	POST request:  
 		Takes in user email and password, validates that they were entered correctly,    
 		checks the entered info in the database, then logs in the user by passing    
 		an authentication cookie.
 	
 	Input:
-	{
-		"email": "string",
-		"password": "string"
-	}
+		{
+			"email": "string",
+			"password": "string"
+		}
 	
 	Success response:
 		Status(200): "Successfully logged in. "
@@ -378,7 +378,7 @@
 **Add Friend**</br>
 **/user/add**
     
-        POST request:
+	POST request:
 		Takes in an email address, searches it in the data, then if found checks 
 		if user already has friend in friend list, then adds the friend to the 
 		user's friend list and simultaneously adds the user to the added friend's 
@@ -401,7 +401,7 @@
 **Get All Friends**</br>
 **/user/friends**
     
-    	GET request:
+	GET request:
 		Uses the user's ID to search for all friends within the user's     
 		friend list and returns a document with an array of objectIDs of 
 		all the user's friends.
@@ -417,7 +417,7 @@
 **Delete a Friend**</br>
 **/user/friend/:id**
     
-    	DELETE request:
+	DELETE request:
 		Takes in the friend's ID from the url, uses it to search for the friend
 		in the user's friend list, then if found deletes the friend from the 
 		user's friend list.
@@ -431,7 +431,7 @@
 **Add Playlist**</br>
 **/user/addplaylist**
     
-    	POST request:
+	POST request:
 		Takes in all fields of the playlist schema and adds a new playlist to  
 		the user's account.
 		
@@ -451,7 +451,7 @@
 **Get All Playlists**</br>
 **/user/playlists**
     
-    	GET request:
+	GET request:
 		Uses the user's ID to search for all playlists within the user's     
 		playlist list and returns a document with an array of objectIDs 
 		of all the user's playlists.
@@ -465,7 +465,7 @@
 **Edit Playlist"**</br>
 **/user/playlist/id**
     
-    	PUT request:
+	PUT request:
 		Gets the ID of a specific playlist from the url and takes in 
 		the values to be edited and edits the playlist's schema. 
 		
