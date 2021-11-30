@@ -8,8 +8,9 @@ const PlaylistSchema = new mongoose.Schema({
     tracks : {
         type : [String]
     },
-    sharedWith : {type : mongoose.Schema.Types.ObjectId, 
-        ref: 'Friend'
+    createdWith : {
+        type : mongoose.Schema.Types.ObjectId, 
+        ref: 'User'
     }
     
 });

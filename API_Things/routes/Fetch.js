@@ -29,6 +29,38 @@ token();
 //Spotify's Client Credential flow does not have a refresh token
 setInterval(token, 3600000);
 
+/**
+  * @swagger
+  * /artist:
+  * get:
+  *     description: Search for artist by exact name
+  *     parameters:
+  *         -in: body
+  *         name: body    
+  *         required: true
+  *         description: name of the artist
+  *     requestBody:
+  *         content:
+  *         application/json: 
+  *             artist: "name"
+  *     responses:
+  *     200:
+  *         description: artist found
+  *         content:
+  *             application/json:
+  *                 name: "artist.name"
+  *                 id : "artist.id"
+  *                 image : "artist.images[2].url"
+  *     500:
+  *         description: artist not found
+  *     401:
+  *         description: Bad or expired token
+  *     403:
+  *         description: Bad OAuth request
+  *     429:
+  *         description: The app has exceeded its rate limits
+  */
+
 // Search artists by name/get ArtistID
 //This returns the artist with the exact matching name (name, id, image link)
 spotifyRouter.get("/artist/", (req, res) => {
@@ -57,6 +89,40 @@ spotifyRouter.get("/artist/", (req, res) => {
     }).catch((err) => console.log(err));
 });
 
+
+/**
+  * @swagger
+  * /fetch/artists:
+  * get:
+  *     description: Search for artist by name
+  *     parameters:
+  *         -in: body
+  *         name: body    
+  *         required: true
+  *         description: name of the artist
+  *     requestBody:
+  *         content:
+  *         application/json: 
+  *             artist: "name"
+  *     responses:
+  *     200:
+  *         description: artist found
+  *         content:
+  *             type: array
+  *             application/json:
+  *                 name: "artist.name"
+  *                 id : "artist.id"
+  *                 image : "artist.images[2].url"
+  *     500:
+  *         description: artist not found
+  *     401:
+  *         description: Bad or expired token
+  *     403:
+  *         description: Bad OAuth request
+  *     429:
+  *         description: The app has exceeded its rate limits
+  */
+
 // Search artists by name
 //This returns an array of matching artists (name, id, image link)
 spotifyRouter.get("/artists/", (req, res) => {
@@ -80,6 +146,41 @@ spotifyRouter.get("/artists/", (req, res) => {
         return artists;
     }).catch((err) => console.log(err));
 });
+
+/**
+  * @swagger
+  * /fetch/artist:
+  * get:
+  *     description: Search for song by name
+  *     parameters:
+  *         -in: body
+  *         name: body    
+  *         required: true
+  *         description: name of the song
+  *     requestBody:
+  *         content:
+  *         application/json: 
+  *             track: "song name"
+  *     responses:
+  *     200:
+  *         description: matching songs found
+  *         content:
+  *             type: array
+  *             application/json:
+  *                 name: "track.name"
+  *                 id : "track.id"
+  *                 artist : "track.artist[0].name"
+  *                 preview : "track.preview_url"
+  *                 url_link : "track.external_urls.spotify"
+  *     500:
+  *         description: song not found
+  *     401:
+  *         description: Bad or expired token
+  *     403:
+  *         description: Bad OAuth request
+  *     429:
+  *         description: The app has exceeded its rate limits
+  */
 
 // Search tracks by name/get TrackID
 //This returns an array of matching tracks (name, id, artist, song preview link, song link)
@@ -107,6 +208,30 @@ spotifyRouter.get("/track/", (req, res) => {
     }).catch((err) =>console.error(err));
 });
 
+/**
+  * @swagger
+  * /fetch/genres:
+  * post:
+  *     description: Get Spotify's available genres
+  *     parameters: none
+  *     responses:
+  *     200:
+  *         description: a list of Spotify's available genres
+  *         content:
+  *             type: array
+  *             application/json:
+  *                 "genre"
+  *     500:
+  *         description: Error connecting to Spotify
+  *     401:
+  *         description: Bad or expired token
+  *     403:
+  *         description: Bad OAuth request
+  *     429:
+  *         description: The app has exceeded its rate limits
+  */
+
+
 //Get available genre seeds
 //This returns an array of all genres 
 spotifyRouter.get("/genres", (req, res) => {
@@ -115,6 +240,46 @@ spotifyRouter.get("/genres", (req, res) => {
     }).catch((err) => console.log('Error getting genre list!', err)); 
   
 });
+
+/**
+  * @swagger
+  * /fetch/artist:
+  * post:
+  *     description: get recommendations
+  *     parameters:
+  *         -in: body
+  *         name: body    
+  *         required: true
+  *         description: Artist ID, Song ID, Genre
+  *         maxSize: 5
+  *         minSize: 1
+  *     requestBody:
+  *         content:
+  *         application/json: 
+  *             seed_artists: ["artist.id"]
+  *             seed_genres: ["genre"]
+  *             seed_tracks: ["track.id"]
+  *     responses:
+  *     200:
+  *         description: matching songs found
+  *         content:
+  *             type: array
+  *             application/json:
+  *                 name: "track.name"
+  *                 id : "track.id"
+  *                 artist : "track.artist[0].name"
+  *                 preview : "track.preview_url"
+  *                 url_link : "track.external_urls.spotify"
+  *     500:
+  *         description: Error getting recommendations
+  *     401:
+  *         description: Bad or expired token
+  *     403:
+  *         description: Bad OAuth request
+  *     429:
+  *         description: The app has exceeded its rate limits
+  */
+
 
 //Get Recommendations Based on Seeds
 //This returns an array of 10 songs (name, id, artist, song preview link, song link)

@@ -4,47 +4,81 @@ const passport = require('passport');
 const passportConfig = require('../passport');
 const JWT = require('jsonwebtoken');
 const User = require('../models/User');
-const Friend = require('../models/Friend');
 const Playlist = require('../models/Playlist');
+const Validator = require("validator");
+const sendEmail = require("../sendEmail");
+const { request } = require('express');
+const mongoose = require('mongoose');
+const crypto = require("crypto");
+const authorized = passport.authenticate('jwt',{session : false})
 require("dotenv").config({path:'../.env'});
-
-// Loading validators for forms
-const validateRegisterInput = require("../Validation/register");
-const validateLoginInput = require("../Validation/login");
 
 const signToken = userID =>{
     return JWT.sign({
-        iss : process.env.secret_Key,
+        iss : process.env.JWT_SECRET,
         sub : userID
-    },process.env.secret_Key,{expiresIn : "1h"});
+    },process.env.JWT_SECRET,{expiresIn : process.env.JWT_EXPIRE});
 }
 
 //Registration endpint
 userRouter.post('/register',(req,res)=>{
-    //Validation Check
-    const { errors, isValid } = validateRegisterInput(req.body);
-    if (!isValid) {
-    return res.status(400).json(errors);
-    }
-    
-    const {email, password} = req.body;
-    User.findOne({email, password},(err,user)=>{
-        if(err)
-            res.status(500).json({message : {msgBody : "Error searching database", msgError: true}});
-        if(user)
-            res.status(400).json({message : {msgBody : "Email is already taken", msgError: true}});
-        else{
+
+    const {password, password2, name} = req.body;
+    const email = req.body.email.toLowerCase()
+
+    User.findOne({email},(err,user)=>{
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error searching database.", msgError: err}});
+        }
+        //Checks if user is already registered
+        if(user){
+            return res.status(400).json({message : {msgBody : "Error: Email is already taken.", msgError: "N/A"}});
+        }//Checks if email is valid
+        if(!Validator.isEmail(email)){
+            return res.status(401).json({message : {msgBody : "Error: Invalid email.", msgError: "N/A"}});
+        }
+        //Checks if password is a valid length
+        if(!Validator.isLength(password, { min: 6, max: 30 })){
+            return res.status(402).json({message : 
+                {msgBody : "Error: Password must be between 6 and 30 characters", msgError: "N/A"}});
+        }
+        //Confirms that both passwords match
+        if(!Validator.equals(password,password2)){
+            return res.status(403).json({message : {msgBody : "Passwords must match", msgError: "N/A"}});
+        }
+        if (!email || !password || !name) {
+            return res.status(404).json({message : {msgBody : "Please provide an email, name, and password", msgError: "N/A"}});
+        }
+        else{   //Saves the new user
             const newUser = new User({
-                firstname: req.body.firstname,
-                lastname: req.body.lastname,
+                name: req.body.name,
                 email: req.body.email,
                 password: req.body.password,
-           });
+            });
             newUser.save(err=>{
                 if(err)
-                    res.status(500).json({message : {msgBody : "Error saving to database", msgError: true}});
-                else
-                    res.status(201).json({message : {msgBody : "Account successfully created", msgError: false}});
+                    return res.status(501).json({message : {msgBody : "Error saving to database", msgError: err}});
+                else{
+
+                    // HTML Message
+                    const message = `
+                    <h1>Welcome to ShareTunes!</h1>
+                    <p>Thank you for joining our site. We hope you enjoy discovering new music with us!</p>
+                    `;
+                    
+                    //Sends registration email
+                    try {
+                        sendEmail({
+                        to: req.body.email,
+                        subject: "Welcome to ShareTunes!",
+                        text: message,
+                        });
+
+                       return res.status(200).json({message : {msgBody : "User successfully saved.", msgError: false}});
+                    }catch (err) {
+                        return res.status(501).json({message : {msgBody : "User saved. Email could not be sent", msgError: true}});
+                    }
+                }    
             });
         }
     });
@@ -52,72 +86,164 @@ userRouter.post('/register',(req,res)=>{
 
 //Login endpoint
 userRouter.post('/login',passport.authenticate('local',{session : false}),(req,res)=>{
-    //Form validation
-    const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) {
-    return res.status(400).json(errors);
-    }
 
+    const password = req.body.password;
+    const email = req.body.email.toLowerCase();
+
+    //Checks if email and password is provided
+    if (!email || !password) {
+        res.status(400).json({message : {msgBody : "Please provide an email and password.", msgError: "N/A"}});
+    }
+   
+    //Authorizes user by sending auth cookie
     if(req.isAuthenticated()){
-       const {_id,email} = req.user;
-       const token = signToken(_id);
-       res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
-       res.status(200).json({isAuthenticated : true,user : {email}});
+        const {_id,email} = req.user;
+        const token = signToken(_id);
+        res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
+        res.status(200).json({message : {msgBody : "Successfully logged in. ", msgError: "N/A"}});
     }
 });
 
-//logout end point
-userRouter.get('/logout',passport.authenticate('jwt',{session : false}),(req,res)=>{
+//Logout endpoint, clears auth cookie
+userRouter.get('/logout', authorized ,(user,res)=>{
     res.clearCookie('access_token');
     res.json({user:{email : ""},success : true});
 });
+
+//Edit User Profile
+userRouter.put('/update/:id', authorized,(req,res)=>{
+    User.findByIdAndUpdate(req.user._id,{$set: req.body})
+    .then(() => res.status(200).json({message : {msgBody : "Successfully Edited User.", msgError: "N/A"}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error editing user.", msgError: er}}));
+});
+
+//Forgot Password Endpoint
+userRouter.post('/forgotPassword', async(req, res) => {
+    //Takes In User's Email
+    const email = req.body.email.toLowerCase();
+  
+    try { //Checks if user exists
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(400).json({message : {msgBody : "No email could not be sent.", msgError: "N/A"}});
+      }
+  
+      //Gets Reset Token
+      const resetToken = user.getResetPasswordToken();
+  
+      await user.save();
+  
+      //Create reset url to email to provided email
+      const resetUrl = `http://localhost:5000/passwordreset/${resetToken}`;
+  
+      // HTML Message
+      const message = `
+        <h1>You have requested a password reset</h1>
+        <p>Please use the following link to reset your password:</p>
+        <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+      `;
+  
+      try{
+        await sendEmail({
+          to: user.email,
+          subject: "Password Reset Request",
+          text: message,
+        });
+
+        res.status(500).json({message : {msgBody : "Email sent.", msgError: "N/A"}});
+
+      }catch(err){
+        console.log(err);
+  
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+  
+        await user.save();
+
+        res.status(500).json({message : {msgBody : "No email could not be sent.", msgError: err}});
+      }
+    } catch (err) {
+      return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
+    }
+});
+
+//Reset Password Endpoint
+userRouter.put('/passwordreset/:resetToken', async(req, res) => {
+    //Compares token in URL params to hashed token
+    const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resetToken)
+    .digest("hex");
+
+    try {
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        res.status(400).json({message : {msgBody : "Invalid Token.", msgError: "N/A"}});
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+    res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: "N/A"}});
+    } catch (err) {
+        res.status(404).json({message : {msgBody : "Unable to update password", msgError: err}});
+    }
+
+});
+
 
 /*---------------------------------------------------*/
 //                   Friend APIs
 /*---------------------------------------------------*/
 
 //Add friend
-userRouter.post('/friend', passport.authenticate('jwt',{session : false}) ,(req,res)=>{
-    const friend = new Friend(req.body);
-
-    friend.save(err=>{
-        if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else{
-            req.user.friends.push(friend);
-            req.user.save(err=>{
-                if(err)
-                    res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-                else
-                    res.status(200).json({message : {msgBody : "Successfully created Friend", msgError : false}});
-            });
+userRouter.post('/add/', passport.authenticate('jwt',{session : false}),async(req,res)=>{
+    User.findOne({email: req.body.email}, function(err,doc) { 
+        if(err){
+            return res.status(500).json({message : "Error adding friend 500."});
         }
-    })
-});
-
-//Get all friends
-userRouter.get('/friends', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    User.findById({_id : req.user._id}).populate('friends').exec((err,document)=>{
-        if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else{
-            res.status(200).json({friends : document.friends, authenticated : true});
+        if(!doc){ //Checks if email is in database
+            return res.status(500).json({message :"User not found."});
+        }
+        if(doc){ //Checks if friend already exists in friend's list
+            if(req.user.friends.indexOf(doc.id.toString()) === -1) {
+                User.findByIdAndUpdate({_id:req.user._id},{$push:{friends : doc._id}})
+                .then(() =>User.findByIdAndUpdate(doc._id,{$push:{friends : req.user.id}}))
+                .then(() => res.status(200).json({message : {msgBody : "Successfully  added friend.", msgError: "N/A"}}))
+                .catch(err => res.status(500).json({message : {msgBody : "Error adding friend", msgError: err}}));
+            }
+            else{
+                //Else friend already exists in friend's list
+                return res.status(501).json({message : {msgBody : "User is already your friend.", msgError: "N/A"}});
+            }
         }
     });
 });
 
-//Edit Friend
-userRouter.put('/friend/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Edited Friend", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+//Get all friends
+userRouter.get('/friends', authorized,async(req,res)=>{
+    User.findById({_id : req.user._id}).populate('friends').exec((err,document)=>{
+        if(err)
+            res.status(500).json({message : {msgBody : "Error fetching friend.", msgError: err}});
+        else{
+            res.status(200).json({friends : document.friends});
+        }
+    });
 });
 
+
 //Delete Friend
-userRouter.delete('/friend/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    Friend.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Friend", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+userRouter.delete('/friend/:id', authorized,(req,res)=>{
+    User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: req.params.id}})
+    .then(() => res.status(200).json({message : {msgBody : "Successfully deleted friend.", msgError: "N/A"}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
 });
 
 /*---------------------------------------------------*/
@@ -125,57 +251,46 @@ userRouter.delete('/friend/:id', passport.authenticate('jwt',{session : false}),
 /*---------------------------------------------------*/
 
 //Add Playlist
-userRouter.post('/playlist', passport.authenticate('jwt',{session : false}) ,(req,res)=>{
-    const playlist = new Playlist(req.body);
+userRouter.post('/playlist', authorized ,(req,res)=>{
+    const playlist = new Playlist({name:req.body.name, tracks: req.body.tracks});
     playlist.save(err=>{
         if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+            res.status(500).json({message : {msgBody : "Error adding playlist.", msgError: err}});
         else{
             req.user.playlists.push(playlist);
             req.user.save(err=>{
                 if(err)
-                    res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+                    res.status(501).json({message : {msgBody : "Error saving playlist.", msgError: err}});
                 else
-                    res.status(200).json({message : {msgBody : "Successfully created a Playlist", msgError : false}});
+                res.status(200).json({message : {msgBody : "Successfully created paylist.", msgError: "N/a"}});
             });
         }
     })
 });
 
 //Get user's playlists
-userRouter.get('/playlists', passport.authenticate('jwt',{session : false}),(req,res)=>{
+userRouter.get('/playlists', authorized,(req,res)=>{
     User.findById({_id : req.user._id}).populate('playlists').exec((err,document)=>{
         if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+            res.status(500).json({message : {msgBody : "Error fetching playlists.", msgError: err}});
         else{
-            res.status(200).json({playlists : document.playlists, authenticated : true});
+            res.status(200).json({playlists : document.playlists});
         }
     });
 });
 
 //Edit Playlist
-userRouter.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
+userRouter.put('/playlist/:id', authorized,(req,res)=>{
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+    .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist.", msgError: "N/A"}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error editing playlist.", msgError: err}}));
 });
 
 //Delete Playlist
-userRouter.delete('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
+userRouter.delete('/playlist/:id', authorized,(req,res)=>{
     Playlist.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
-});
-
-
-/*---------------------------------------------------*/
-//                   Authenticated API
-/*---------------------------------------------------*/
-
-//User authentication
-userRouter.get('/authenticated',passport.authenticate('jwt',{session : false}),(req,res)=>{
-    const {email} = req.user;
-    res.status(200).json({isAuthenticated : true, user : {email}});
+    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist.", msgError: "N/A"}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error deleting playlist.", msgError: err}}));
 });
 
 module.exports = userRouter;
