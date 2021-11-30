@@ -82,18 +82,18 @@
             			image : artist.images[2].url
         		}
 
-		No match response:
-			{"Artist not found"}
+	    No match response:
+		    {"Artist not found"}
 	
-	Error responses:
-		500:
-           		description: artist not found
-  	     	401:
-           		description: Bad or expired token
-  	     	403:
-           		description: Bad OAuth request
-  	     	429:
-           		description: The app has exceeded its rate limits
+	    Error responses:
+		    500:
+           	    	    description: artist not found
+  	     	    401:
+           		    description: Bad or expired token
+  	     	    403:
+           		    description: Bad OAuth request
+  	     	    429:
+           		    description: The app has exceeded its rate limits
 
 **Get A List Of Matching Artists**</br>
 **/fetch/artists**
