@@ -8,7 +8,8 @@
     -Updated the "add friend" endpoint so now it adds other users, instead of adding 
      a friend like a contact app.
      
-    -Changed the add playlist endpoint from "/playlist" to "/addplaylis"t 
+    -Changed the add playlist endpoint from "/playlist" to "/addplaylist"
+    
     -Changed the add friend endpoint from "/friend" to "/add"
     
     -Updated the "add friend" endpoint so now it does validation checks and simultaneously 
