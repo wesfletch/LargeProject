@@ -83,7 +83,7 @@
         No match response:
         {"Artist not found"}
 
-**Get A List Of Matching Artists*
+**Get A List Of Matching Artists**</br>
 **/fetch/artists**
     
         GET request:
