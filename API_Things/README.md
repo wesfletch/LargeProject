@@ -74,15 +74,26 @@
         Input json: 
 	    {artist: "artist's name"}
 
-        Match response:
-        {
-            name : artist.name,
-            id : artist.id,
-            image : artist.images[2].url
-        }
+        Success response:
+		Status(200):
+        		{
+         	   		name : artist.name,
+   				id : artist.id,
+            			image : artist.images[2].url
+        		}
 
-        No match response:
-        {"Artist not found"}
+       	No match response:
+        	{"Artist not found"}
+	
+	Error responses:
+		500:
+           		description: artist not found
+  	     	401:
+           		description: Bad or expired token
+  	     	403:
+           		description: Bad OAuth request
+  	     	429:
+           		description: The app has exceeded its rate limits
 
 **Get A List Of Matching Artists**</br>
 **/fetch/artists**
@@ -96,20 +107,31 @@
         Input json: 
 	    {artist: "artist's name"}
 
-         Match response: 
-            artists = [ 
-                {
-                    name : artist.name,
-                    id : artist.id,
-                    image : artist.images[2].url
-                },
-                {},
-                {},
-                ....
-            ]
+         Success response: 
+	 	Status(200):
+            		artists = [ 
+               		{
+                    	    name : artist.name,
+                    	    id : artist.id,
+                    	    image : artist.images[2].url
+                	    },
+                	   {},
+                	   {},
+               	 	   ....
+	    		]
 
         No match response:
-        {"Artists not found"}
+        	{"Artists not found"}
+		
+	Error responses:
+		500:
+           		description: artist not found
+  	     	401:
+           		description: Bad or expired token
+  	     	403:
+           		description: Bad OAuth request
+  	     	429:
+           		description: The app has exceeded its rate limits
 
 **Get A List Of Matching Tracks**</br>
 **/fetch/track**
@@ -123,22 +145,33 @@
         Input json:   
 	    {artist: "track name"}
 
-         Match response: 
-            tracks= [ 
-                {
-                    "name": track.name,
-                    "id": track.id,
-                    "artist": track.artists[0].name,
-                    "preview": track.preview_url,
-                    "url_link": track.external_urls.spotify
-                },
-                {},
-                {},
-                .......
-            ]
+         Sucess response: 
+	 	200:
+            		tracks= [ 
+                		{
+                    		    "name": track.name,
+                    		    "id": track.id,
+                    		    "artist": track.artists[0].name,
+                    		    "preview": track.preview_url,
+                    		    "url_link": track.external_urls.spotify
+                		},
+                		{},
+                		{},
+                		.......
+            			]
 
         No match response:
-        {"Tracks not found"}
+        	{"Tracks not found"}
+	
+	Error responses:
+		500:
+           		description: song not found
+  	     	401:
+           		description: Bad or expired token
+  	     	403:
+           		description: Bad OAuth request
+  	     	429:
+			description: The app has exceeded its rate limits
 
 **Get All Genres** </br>
 **/fetch/genres**
@@ -146,15 +179,26 @@
         GET request:
 		Takes in no input. Returns an unnamed array of all of Spotify's available genres.
 
-        Response:
-        [
-            "acoustic",
-            "afrobeat",
-            "alt-rock",
-            "alternative",
-            "ambient",
-            "anime"....
-        ]
+        Success Response:
+		200:
+        	  [
+            		"acoustic",
+            		"afrobeat",
+           		 "alt-rock",
+            		"alternative",
+            		"ambient",
+           		 "anime"....
+        	   ]
+	
+	Error responses:
+		500:
+           		description: Error connecting to Spotify
+  	     	401:
+           		description: Bad or expired token
+  	     	403:
+           		description: Bad OAuth request
+  	     	429:
+			description: The app has exceeded its rate limits
 
 **Get Recommendations**</br>
 **/fetch/recs**
@@ -182,19 +226,30 @@
            	 seed_tracks: '3A2yGHWIzmGEIolwonU69h'
             }
 
-           Response:
-            tracks= [ 
-                {
-                    "name": track.name,
-                    "id": track.id,
-                    "artist": track.artists[0].name,
-                    "preview": track.preview_url,
-                    "url_link": track.external_urls.spotify
-                },
-                {},
-                {},
-                .......
-            ]
+           Sucess Response:
+	   	200:
+           		tracks= [ 
+                		{
+                    		    "name": track.name,
+                    		    "id": track.id,
+                    		    "artist": track.artists[0].name,
+                    		    "preview": track.preview_url,
+                    		    "url_link": track.external_urls.spotify
+                		},
+                		{},
+                		{},
+                		.......
+            		]
+	    
+		Error responses:
+			500:
+           			description: Error getting recommendations
+  	     		401:
+           			description: Bad or expired token
+  	     		403:
+           			description: Bad OAuth request
+  	     		429:
+				description: The app has exceeded its rate limits
 
 ## **Information for /User:**
 
@@ -218,14 +273,14 @@
 		Status(200): "User successfully saved."
 		
 	Error responses:
-		Status(500): "Error searching database."
-		Status(400): "Error: Email is already taken."
-		Status(400): "Error: Invalid email."
-		Status(400): "Error: Password must be between 6 and 30 characters"
-		Status(400): "Error: Passwords must match."
-		Status(400): "Error: Please provide an email, name, and password."
-		Status(500): "Error saving to database."
-		Status(500): "Error: User saved. Email could not be sent.",
+		500: "Error searching database."
+		400: "Error: Email is already taken."
+		401: "Error: Invalid email."
+		402: "Error: Password must be between 6 and 30 characters"
+		403: "Error: Passwords must match."
+		405: "Error: Please provide an email, name, and password."
+		500: "Error saving to database."
+		501: "Error: User saved. Email could not be sent.",
 
 **Login**</br>
 **/user/login**
@@ -296,7 +351,7 @@
 	Error responses:
 		Status(400): "Error: Email could not be sent."  <-- Means user was not found
 		Status(500): "Error sending email."
-		Status(500): "An Error Occured."
+		Status(501): "An Error Occured."
 	
 **Reset Password**</br>
 **/reset/:resetToken**
@@ -313,12 +368,12 @@
 	}
 	
 	Success response:
-		Status(200): "Password Successfully Updated."
+		200: "Password Successfully Updated."
 		
 	Error responses:
-		Status(400): "Error: Invalid Token."
-		Status(400): "Error: Passwords must match."
-		Status(500): "Error: Unable to update password."
+		400: "Error: Invalid Token."
+		401: "Error: Passwords must match."
+		500: "Error: Unable to update password."
 
 **Add Friend**</br>
 **/user/add**
@@ -338,10 +393,10 @@
 		Status(200): "Successfully added friend."
 		
 	Error responses:
-		Status(500): "Error finding friends."
-		Status(400): "Error: User not found."
-		Status(500): "Error adding friends."
-		Status(400): "Error: User is already your friend."
+		500: "Error finding friends."
+		404: "Error: User not found."
+		501: "Error adding friends."
+		401: "Error: User is already your friend."
 		
 **Get All Friends**</br>
 **/user/friends**
@@ -352,10 +407,10 @@
 		all the user's friends.
 		
 	Success response:
-		Status(200): {friends : document.friends}
+		200: {friends : document.friends}
 		
 	Error responses:
-		Status(500): "Error fetching friends."
+		500: "Error fetching friends."
 
 
 
@@ -368,10 +423,10 @@
 		user's friend list.
 		
 	Success response:
-		Status(200): "Friend successfully deleted."
+		200: "Friend successfully deleted."
 		
 	Error responses:
-		Status(500): "Error deleting friend."
+		500: "Error deleting friend."
 
 **Add Playlist**</br>
 **/user/addplaylist**
@@ -387,11 +442,11 @@
 	}
 	
 	Success response:
-		Status(200): "Successfully created paylist."
+		200: "Successfully created paylist."
 		
 	Error responses:
-		Status(500): "Error adding playlist."
-		Status(500): "Error saving playlist."
+		500: "Error adding playlist."
+		501: "Error saving playlist."
 
 **Get All Playlists**</br>
 **/user/playlists**
@@ -402,10 +457,10 @@
 		of all the user's playlists.
 		
 	Success response:
-		Status(200): {playlists : document.playlists}
+		200: {playlists : document.playlists}
 		
 	Error responses:
-		Status(500): "Error fetching playlists."
+		500: "Error fetching playlists."
 		
 **Edit Playlist"**</br>
 **/user/playlist/id**
@@ -421,10 +476,10 @@
 	}
 	
 	Success response:
-		Status(200): "Successfully Updated Paylist."
+		200: "Successfully Updated Paylist."
 		
 	Error responses:
-		Status(500): "Error updating playlist."
+		500: "Error updating playlist."
 			
 **Delete Playlist"**</br>
 **/user/playlist/id**		
@@ -434,9 +489,9 @@
 		from the database.
 		
 	Success response:
-		Status(200): "Successfully Deleted Paylist."
+		200: "Successfully Deleted Paylist."
 		
 	Error responses:
-		Status(500): "Error deleting playlist."
+		500: "Error deleting playlist."
 
 
