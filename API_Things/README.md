@@ -8,6 +8,7 @@
     -Updated the "add friend" endpoint so now it adds other users, instead of adding 
      a friend like a contact app.
      
+    -Changed the add playlist endpoint from "/playlist" to "/addplaylis"t 
     -Changed the add friend endpoint from "/friend" to "/add"
     
     -Updated the "add friend" endpoint so now it does validation checks and simultaneously 
@@ -61,7 +62,8 @@
 
 												     
 ## **Information for /Fetch**
-    
+   
+**Get One Artist**   
 **/fetch/artist**
 		
         GET request:
@@ -81,6 +83,7 @@
         No match response:
         {"Artist not found"}
 
+**Get A List Of Matching Artists*
 **/fetch/artists**
     
         GET request:
@@ -107,7 +110,7 @@
         No match response:
         {"Artists not found"}
 
-
+**Get A List Of Matching Tracks**
 **/fetch/track**
     
         GET request:
@@ -136,6 +139,7 @@
         No match response:
         {"Tracks not found"}
 
+**Get All Genres**
 **/fetch/genres**
     
         GET request:
@@ -151,6 +155,7 @@
             "anime"....
         ]
 
+**Get Recommendations**
 **/fetch/recs**
     
         GET request:
@@ -219,7 +224,7 @@
 		Status(400): "Error: Passwords must match."
 		Status(400): "Error: Please provide an email, name, and password."
 		Status(500): "Error saving to database."
-		Status(500): "User saved. Email could not be sent.",
+		Status(500): "Error: User saved. Email could not be sent.",
 
 **Login**
 **/user/login**
@@ -239,13 +244,14 @@
 		Status(200): "Successfully logged in. "
 		
 	Error responses:
-		Status(400): "Please provide an email and password."
+		Status(400): "Error: Please provide an email and password."
 		
 **Logout**
 **/user/logout**
     
         GET request:
 		Logs user out by deleting authentication cookie.
+		
 **Update User**
 **/update/:id**
 	PUT request:
@@ -272,8 +278,9 @@
 **Forgot Password**
 **/forgot**
 	POST request:
-		Takes in an email address, checks if it exists in the database and then sends the user
-		a "Reset Password" email that has a reset password link.
+		Takes in an email address, checks if it exists in the database and 
+		then sends the user a "Reset Password" email that has a reset password 
+		link.
 	
 	Input:
 	{
@@ -285,6 +292,7 @@
 		
 	Error responses:
 		Status(400): "Error: Email could not be sent."  <-- Means user was not found
+		Status(500): "Error sending email."
 		Status(500): "An Error Occured."
 	
 **Reset Password**
@@ -312,9 +320,10 @@
 **/user/add**
     
         POST request:
-		Takes in an email address, searches it in the data, then if found adds it
-		to the user's friend list and simultaneously adds the user to the added 
-		friend's friend list.
+		Takes in an email address, searches it in the data, then if found checks 
+		if user already has friend in friend list, then adds the friend to the 
+		user's friend list and simultaneously adds the user to the added friend's 
+		friend list.
 	
 	Input:
 	{
@@ -322,57 +331,105 @@
 	}
 	
 	Success response:
-		Status(200): "Password Successfully Updated."
+		Status(200): "Successfully added friend."
 		
 	Error responses:
-		Status(500): "Error finding friend."
+		Status(500): "Error finding friends."
 		Status(400): "Error: User not found."
-		Status(400): "Error: Passwords must match."
-		Status(500): "Error adding friend."
+		Status(500): "Error adding friends."
+		Status(400): "Error: User is already your friend."
 		
-
+**Get All Friends**
 **/user/friends**
     
         GET request:
-		Takes in the user's ID, uses it to search for all friend with the     
-		attached ID and returns an array of all the user's friends.
+		Uses the user's ID to search for all friends within the user's     
+		friend list and returns a document with an array of objectIDs of 
+		all the user's friends.
+		
+	Success response:
+		Status(200): {friends : document.friends}
+		
+	Error responses:
+		Status(500): "Error fetching friends."
 
-**/user/friends/:id**
+
+
+**Delete a Friend**
+**/user/friend/:id**
     
-        PUT request:
-		Takes in the ID of a specific friend, and the values to be edited    
-		and edits the friend's schema. 
-        
         DELETE request:
-		Takes in the ID of a specific friend and deletes their schema     
-		from the database.
+		Takes in the friend's ID from the url, uses it to search for the friend
+		in the user's friend list, then if found deletes the friend from the 
+		user's friend list.
+		
+	Success response:
+		Status(200): "Friend successfully deleted."
+		
+	Error responses:
+		Status(500): "Error deleting friend."
 
-**/user/playlist**
+**Add Playlist**
+**/user/addplaylist**
     
         POST request:
 		Takes in all fields of the playlist schema and adds a new playlist to  
-		the user's account by attatching the user's ID to the new playlist schema.
+		the user's account.
+		
+	Example Input:
+	{
+		"name" : "string",
+		"tracks" : "S1, S2, S3, S4, S5, S6, S7, S8, S9, S10"
+	}
+	
+	Success response:
+		Status(200): "Successfully created paylist."
+		
+	Error responses:
+		Status(500): "Error adding playlist."
+		Status(500): "Error saving playlist."
 
+**Get All Playlists**
 **/user/playlists**
     
         GET request:
-		Takes in the user's ID, uses it to search for all playlists with  
-		the attached ID and returns an array of all the user's playlists.
-
+		Uses the user's ID to search for all playlists within the user's     
+		playlist list and returns a document with an array of objectIDs 
+		of all the user's playlists.
+		
+	Success response:
+		Status(200): {playlists : document.playlists}
+		
+	Error responses:
+		Status(500): "Error fetching playlists."
+		
+**Delete Playlist"
 **/user/playlist/id**
     
         PUT request:
-		Takes in the ID of a specific playlist, and the values to be edited  
-		and edits the playlist's schema. 
-        
+		Gets the ID of a specific playlist from the url and takes in 
+		the values to be edited  and edits the playlist's schema. 
+		
+		Example Input:
+		{
+			"name" : "string",
+			"tracks" : "S1, S2, S3, S4, S5, S6, S7, S8, S9, S10"
+		}
+	
+		Success response:
+			Status(200): "Successfully Updated Paylist."
+		
+		Error responses:
+			Status(500): "Error updating playlist."
+		
         DELETE request:
-		Takes in the ID of a specific playlist and deletes the schema    
+		Gets the ID of a specific playlist from the url and deletes it    
 		from the database.
-
-**/user/authenticated**
-    
-        GET request:
-		Checks if a user is authenticated, meaning they have access to    
-		the areas of the site only accessible by registered users.
+		
+		Success response:
+			Status(200): "Successfully Deleted Paylist."
+		
+		Error responses:
+			Status(500): "Error deleting playlist."
 
 
