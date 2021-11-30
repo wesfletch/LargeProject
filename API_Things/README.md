@@ -107,18 +107,18 @@
 	    Input json: 
 		    {artist: "artist's name"}
 
-         Success response: 
+        Success response: 
 	 	Status(200):
             		artists = [ 
                		{
                     	    name : artist.name,
                     	    id : artist.id,
                     	    image : artist.images[2].url
-                	    },
-                	   {},
-                	   {},
-               	 	   ....
-	    		]
+                	        },
+                	       {},
+                	       {},
+               	 	       ....
+	    		    ]
 
         No match response:
         	{"Artists not found"}
@@ -145,7 +145,7 @@
 	    Input json:   
 		    {artist: "track name"}
 
-         Sucess response: 
+        Sucess response: 
 	 	200:
             		tracks= [ 
                 		{
