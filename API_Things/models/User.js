@@ -46,9 +46,9 @@ UserSchema.methods.getResetPasswordToken = function () {
   
     // Hash token (private key) and save to database
     this.resetPasswordToken = crypto
-      .createHash("sha256")
+      .createHash(process.env.HASH)
       .update(resetToken)
-      .digest("hex");
+      .digest(process.env.DIGEST);
   
     // Set token expire date
     this.resetPasswordExpire = Date.now() + 10 * (60 * 1000); // Ten Minutes

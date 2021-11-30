@@ -35,19 +35,19 @@ userRouter.post('/register',(req,res)=>{
             return res.status(400).json({message : {msgBody : "Error: Email is already taken.", msgError: "N/A"}});
         }//Checks if email is valid
         if(!Validator.isEmail(email)){
-            return res.status(401).json({message : {msgBody : "Error: Invalid email.", msgError: "N/A"}});
+            return res.status(400).json({message : {msgBody : "Error: Invalid email.", msgError: "N/A"}});
         }
         //Checks if password is a valid length
         if(!Validator.isLength(password, { min: 6, max: 30 })){
-            return res.status(402).json({message : 
-                {msgBody : "Error: Password must be between 6 and 30 characters", msgError: "N/A"}});
+            return res.status(400).json({message : 
+                {msgBody : "Error: Password must be between 6 and 30 characters.", msgError: "N/A"}});
         }
         //Confirms that both passwords match
         if(!Validator.equals(password,password2)){
-            return res.status(403).json({message : {msgBody : "Passwords must match", msgError: "N/A"}});
+            return res.status(400).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
         }
         if (!email || !password || !name) {
-            return res.status(404).json({message : {msgBody : "Please provide an email, name, and password", msgError: "N/A"}});
+            return res.status(400).json({message : {msgBody : "Error: Please provide an email, name, and password.", msgError: "N/A"}});
         }
         else{   //Saves the new user
             const newUser = new User({
@@ -57,7 +57,7 @@ userRouter.post('/register',(req,res)=>{
             });
             newUser.save(err=>{
                 if(err)
-                    return res.status(501).json({message : {msgBody : "Error saving to database", msgError: err}});
+                    return res.status(500).json({message : {msgBody : "Error saving to database.", msgError: err}});
                 else{
 
                     // HTML Message
@@ -76,7 +76,7 @@ userRouter.post('/register',(req,res)=>{
 
                        return res.status(200).json({message : {msgBody : "User successfully saved.", msgError: false}});
                     }catch (err) {
-                        return res.status(501).json({message : {msgBody : "User saved. Email could not be sent", msgError: true}});
+                        return res.status(500).json({message : {msgBody : "Error: User saved. Email could not be sent.", msgError: true}});
                     }
                 }    
             });
@@ -92,7 +92,7 @@ userRouter.post('/login',passport.authenticate('local',{session : false}),(req,r
 
     //Checks if email and password is provided
     if (!email || !password) {
-        res.status(400).json({message : {msgBody : "Please provide an email and password.", msgError: "N/A"}});
+        res.status(400).json({message : {msgBody : "Error: Please provide an email and password.", msgError: "N/A"}});
     }
    
     //Authorizes user by sending auth cookie
@@ -100,7 +100,7 @@ userRouter.post('/login',passport.authenticate('local',{session : false}),(req,r
         const {_id,email} = req.user;
         const token = signToken(_id);
         res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
-        res.status(200).json({message : {msgBody : "Successfully logged in. ", msgError: "N/A"}});
+        res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: "N/A"}});
     }
 });
 
@@ -118,7 +118,7 @@ userRouter.put('/update/:id', authorized,(req,res)=>{
 });
 
 //Forgot Password Endpoint
-userRouter.post('/forgotPassword', async(req, res) => {
+userRouter.post('/forgot', async(req, res) => {
     //Takes In User's Email
     const email = req.body.email.toLowerCase();
   
@@ -126,7 +126,7 @@ userRouter.post('/forgotPassword', async(req, res) => {
       const user = await User.findOne({ email });
   
       if (!user) {
-        return res.status(400).json({message : {msgBody : "No email could not be sent.", msgError: "N/A"}});
+        return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: "N/A"}});
       }
   
       //Gets Reset Token
@@ -151,7 +151,7 @@ userRouter.post('/forgotPassword', async(req, res) => {
           text: message,
         });
 
-        res.status(500).json({message : {msgBody : "Email sent.", msgError: "N/A"}});
+        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: "N/A"}});
 
       }catch(err){
         console.log(err);
@@ -161,15 +161,15 @@ userRouter.post('/forgotPassword', async(req, res) => {
   
         await user.save();
 
-        res.status(500).json({message : {msgBody : "No email could not be sent.", msgError: err}});
+        res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
       }
     } catch (err) {
-      return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
+      return res.status(500).json({message : {msgBody : "An Error Occured.", msgError: err}});
     }
 });
 
 //Reset Password Endpoint
-userRouter.put('/passwordreset/:resetToken', async(req, res) => {
+userRouter.put('/reset/:resetToken', async(req, res) => {
     //Compares token in URL params to hashed token
     const resetPasswordToken = crypto
     .createHash("sha256")
@@ -183,7 +183,11 @@ userRouter.put('/passwordreset/:resetToken', async(req, res) => {
     });
 
     if (!user) {
-        res.status(400).json({message : {msgBody : "Invalid Token.", msgError: "N/A"}});
+        res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: "N/A"}});
+    }
+    //Confirms that both passwords match
+    if(!Validator.equals(req.body.password,req.body.password2)){
+        return res.status(400).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
     }
 
     user.password = req.body.password;
@@ -193,7 +197,7 @@ userRouter.put('/passwordreset/:resetToken', async(req, res) => {
     await user.save();
     res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: "N/A"}});
     } catch (err) {
-        res.status(404).json({message : {msgBody : "Unable to update password", msgError: err}});
+        res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
     }
 
 });
@@ -207,21 +211,21 @@ userRouter.put('/passwordreset/:resetToken', async(req, res) => {
 userRouter.post('/add/', passport.authenticate('jwt',{session : false}),async(req,res)=>{
     User.findOne({email: req.body.email}, function(err,doc) { 
         if(err){
-            return res.status(500).json({message : "Error adding friend 500."});
+            return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: err}});
         }
         if(!doc){ //Checks if email is in database
-            return res.status(500).json({message :"User not found."});
+            return res.status(400).json({message : {msgBody : "Error: User not found.", msgError: "N/A"}});
         }
         if(doc){ //Checks if friend already exists in friend's list
             if(req.user.friends.indexOf(doc.id.toString()) === -1) {
                 User.findByIdAndUpdate({_id:req.user._id},{$push:{friends : doc._id}})
                 .then(() =>User.findByIdAndUpdate(doc._id,{$push:{friends : req.user.id}}))
                 .then(() => res.status(200).json({message : {msgBody : "Successfully  added friend.", msgError: "N/A"}}))
-                .catch(err => res.status(500).json({message : {msgBody : "Error adding friend", msgError: err}}));
+                .catch(err => res.status(500).json({message : {msgBody : "Error adding friend.", msgError: err}}));
             }
             else{
                 //Else friend already exists in friend's list
-                return res.status(501).json({message : {msgBody : "User is already your friend.", msgError: "N/A"}});
+                return res.status(400).json({message : {msgBody : "Error: User is already your friend.", msgError: "N/A"}});
             }
         }
     });
@@ -242,7 +246,7 @@ userRouter.get('/friends', authorized,async(req,res)=>{
 //Delete Friend
 userRouter.delete('/friend/:id', authorized,(req,res)=>{
     User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: req.params.id}})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully deleted friend.", msgError: "N/A"}}))
+    .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: "N/A"}}))
     .catch(err => res.status(500).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
 });
 
@@ -251,7 +255,7 @@ userRouter.delete('/friend/:id', authorized,(req,res)=>{
 /*---------------------------------------------------*/
 
 //Add Playlist
-userRouter.post('/playlist', authorized ,(req,res)=>{
+userRouter.post('/addplaylist', authorized ,(req,res)=>{
     const playlist = new Playlist({name:req.body.name, tracks: req.body.tracks});
     playlist.save(err=>{
         if(err)
@@ -260,7 +264,7 @@ userRouter.post('/playlist', authorized ,(req,res)=>{
             req.user.playlists.push(playlist);
             req.user.save(err=>{
                 if(err)
-                    res.status(501).json({message : {msgBody : "Error saving playlist.", msgError: err}});
+                    res.status(500).json({message : {msgBody : "Error saving playlist.", msgError: err}});
                 else
                 res.status(200).json({message : {msgBody : "Successfully created paylist.", msgError: "N/a"}});
             });
@@ -283,7 +287,7 @@ userRouter.get('/playlists', authorized,(req,res)=>{
 userRouter.put('/playlist/:id', authorized,(req,res)=>{
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
     .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist.", msgError: "N/A"}}))
-    .catch(err => res.status(500).json({message : {msgBody : "Error editing playlist.", msgError: err}}));
+    .catch(err => res.status(500).json({message : {msgBody : "Error updated playlist.", msgError: err}}));
 });
 
 //Delete Playlist
