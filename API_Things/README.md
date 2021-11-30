@@ -7,6 +7,8 @@
     
     -Updated the "add friend" endpoint so now it adds other users, instead of adding 
      a friend like a contact app.
+     
+    -Changed the add friend endpoint from "/friend" to "/add"
     
     -Updated the "add friend" endpoint so now it does validation checks and simultaneously 
      adds a user to the friend list of the friend they are adding. (the simultaneous add was 
@@ -165,16 +167,16 @@
             seed_artists: ['ArtistID']
             seed_genres: ['Genre Name']
             seed_tracks: ['TrackID']
-        }
+       	    }
 	
-        Example input json:
-        {
-            seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
-            seed_genres: ['hip-hop', 'r-n-b']
-            seed_tracks: '3A2yGHWIzmGEIolwonU69h'
-        }
+            Example input json:
+            {
+           	 seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
+          	  seed_genres: ['hip-hop', 'r-n-b']
+           	 seed_tracks: '3A2yGHWIzmGEIolwonU69h'
+            }
 
-        Response:
+           Response:
             tracks= [ 
                 {
                     "name": track.name,
@@ -190,30 +192,144 @@
 
 ## **Information for /User:**
 
+**Registration**
 **/user/register**
     
         POST request:
 		Takes in the fields on the User schena, validates all fields, checks the    
 		database for matching email and password pair, and then saves the user    
 		to the database.
-    
+	
+	Input:
+	{
+		"name": "string",
+		"email": "string",
+		"password": "string",
+		"password2": "string",
+	}
+	
+	Success response:
+		Status(200): "User successfully saved."
+		
+	Error responses:
+		Status(500): "Error searching database."
+		Status(400): "Error: Email is already taken."
+		Status(400): "Error: Invalid email."
+		Status(400): "Error: Password must be between 6 and 30 characters"
+		Status(400): "Error: Passwords must match."
+		Status(400): "Error: Please provide an email, name, and password."
+		Status(500): "Error saving to database."
+		Status(500): "User saved. Email could not be sent.",
+
+**Login**
 **/user/login**
     
         POST request:  
 		Takes in user email and password, validates that they were entered correctly,    
 		checks the entered info in the database, then logs in the user by passing    
 		an authentication cookie.
-
+	
+	Input:
+	{
+		"email": "string",
+		"password": "string"
+	}
+	
+	Success response:
+		Status(200): "Successfully logged in. "
+		
+	Error responses:
+		Status(400): "Please provide an email and password."
+		
+**Logout**
 **/user/logout**
     
         GET request:
 		Logs user out by deleting authentication cookie.
+**Update User**
+**/update/:id**
+	PUT request:
+		Updates the user's profile information. Can be used to update any the following
+		fields: name, email, image, fav_genres, fav_artists, fav_tracks. All fields do 
+		not need to be filled in. Only add the field that is to be changed.
+		Takes in userID from the url.
+	Input:
+	{
+		"email" : "string",
+		"password" : "string",
+		"image" : "string",
+		"fav_genres" : "string",
+		"fav_artists" : "string",
+		"fav_tracks" : "string"
+	}
+	
+	Success response:
+		Status(200): "Successfully Edited User."
+		
+	Error responses:
+		Status(500): "Error editing user."
 
-**/user/friend**
+**Forgot Password**
+**/forgot**
+	POST request:
+		Takes in an email address, checks if it exists in the database and then sends the user
+		a "Reset Password" email that has a reset password link.
+	
+	Input:
+	{
+		"email" : "string"
+	}
+	
+	Success response:
+		Status(200): "Email successfully sent."
+		
+	Error responses:
+		Status(400): "Error: Email could not be sent."  <-- Means user was not found
+		Status(500): "An Error Occured."
+	
+**Reset Password**
+**/reset/:resetToken**
+	PUT request:
+		Takes in the reset token from the url and compares it with the reset token in the user's schema
+		to authenticate it. Takes in two password fields, confirms that they match and then saves the new
+		password.
+	
+	Input:
+	{
+		"password" : "string",
+		"password2" : "string"
+	}
+	
+	Success response:
+		Status(200): "Password Successfully Updated."
+		
+	Error responses:
+		Status(400): "Error: Invalid Token."
+		Status(400): "Error: Passwords must match."
+		Status(500): "Error: Unable to update password."
+
+**Add Friend**
+**/user/add**
     
         POST request:
-		Takes in all fields of the friend schema and adds a new friend to     
-		the user's account by attatching the user's ID to the new friend schema.
+		Takes in an email address, searches it in the data, then if found adds it
+		to the user's friend list and simultaneously adds the user to the added 
+		friend's friend list.
+	
+	Input:
+	{
+		"email" : "string",
+	}
+	
+	Success response:
+		Status(200): "Password Successfully Updated."
+		
+	Error responses:
+		Status(500): "Error finding friend."
+		Status(400): "Error: User not found."
+		Status(400): "Error: Passwords must match."
+		Status(500): "Error adding friend."
+		
 
 **/user/friends**
     
