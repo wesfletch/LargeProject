@@ -104,8 +104,8 @@
 		contains all the matching artists' names, IDs, and images. The max array   
 		size is set at 10.
 
-	Input json: 
-		{artist: "artist's name"}
+	    Input json: 
+		    {artist: "artist's name"}
 
          Success response: 
 	 	Status(200):
@@ -123,15 +123,15 @@
         No match response:
         	{"Artists not found"}
 		
-	Error responses:
-		500:
-           		description: artist not found
-  	     	401:
-           		description: Bad or expired token
-  	     	403:
-           		description: Bad OAuth request
-  	     	429:
-           		description: The app has exceeded its rate limits
+	    Error responses:
+		    500:
+           	 	    description: artist not found
+  	     	    401:
+           		    description: Bad or expired token
+  	     	    403:
+           		    description: Bad OAuth request
+  	     	    429:
+           		    description: The app has exceeded its rate limits
 
 **Get A List Of Matching Tracks**</br>
 **/fetch/track**
@@ -142,8 +142,8 @@
 		the name, ID, artist, preview link, and track link of all the matching tracks.   
 		The max array size is set at 10.
 	
-	Input json:   
-		{artist: "track name"}
+	    Input json:   
+		    {artist: "track name"}
 
          Sucess response: 
 	 	200:
@@ -163,15 +163,15 @@
         No match response:
         	{"Tracks not found"}
 	
-	Error responses:
-		500:
-           		description: song not found
-  	     	401:
-           		description: Bad or expired token
-  	     	403:
-           		description: Bad OAuth request
-  	     	429:
-			description: The app has exceeded its rate limits
+	    Error responses:
+		    500:
+           		    description: song not found
+  	     	    401:
+           		    description: Bad or expired token
+  	     	    403:
+           		    description: Bad OAuth request
+  	     	    429:
+			    description: The app has exceeded its rate limits
 
 **Get All Genres** </br>
 **/fetch/genres**
@@ -190,15 +190,15 @@
            		 "anime"....
         	   ]
 	
-	Error responses:
-		500:
-           		description: Error connecting to Spotify
-  	     	401:
-           		description: Bad or expired token
-  	     	403:
-           		description: Bad OAuth request
-  	     	429:
-			description: The app has exceeded its rate limits
+	    Error responses:
+		    500:
+           		    description: Error connecting to Spotify
+  	     	    401:
+           		    description: Bad or expired token
+  	     	    403:
+           		    description: Bad OAuth request
+  	     	   429:
+			    description: The app has exceeded its rate limits
 
 **Get Recommendations**</br>
 **/fetch/recs**
@@ -212,24 +212,24 @@
 		It returns an array named "tracks" containing the name, ID, artist,    
 		preview link, and track link of all the reccomended tracks.
 
-	Input json:
-	    {
-            seed_artists: ['ArtistID']
-            seed_genres: ['Genre Name']
-            seed_tracks: ['TrackID']
-	    }
+	    Input json:
+	        {
+                seed_artists: ['ArtistID']
+                seed_genres: ['Genre Name']
+                seed_tracks: ['TrackID']
+	        }
 	
-	Example input json:
-            {
-           	 seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
-          	  seed_genres: ['hip-hop', 'r-n-b']
-           	 seed_tracks: '3A2yGHWIzmGEIolwonU69h'
-            }
+	    Example input json:
+                {
+           	      seed_artists: ['4kYSro6naA4h99UJvo89HB', '3TVXtAsR1Inumwj472S9r4']
+          	      seed_genres: ['hip-hop', 'r-n-b']
+           	      seed_tracks: '3A2yGHWIzmGEIolwonU69h'
+                }
 
-	Sucess Response:
-	   	200:
-           		tracks= [ 
-                		{
+	    Sucess Response:
+	   	    200:
+           		    tracks= [ 
+                		    {
                     		    "name": track.name,
                     		    "id": track.id,
                     		    "artist": track.artists[0].name,
@@ -239,7 +239,7 @@
                 		{},
                 		{},
                 		.......
-            		]
+            		    ]
 	    
 		Error responses:
 			500:
@@ -255,7 +255,7 @@
 
 **Registration**</br>
 **/user/register**
-    
+
     	POST request:
 		Takes in the fields on the User schena, validates all fields, checks the    
 		database for matching email and password pair, and then saves the user    
