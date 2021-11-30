@@ -1,6 +1,7 @@
 # All off my updated files can be found in the "API_Things" folder.   
 
 # Updates:
+    **I updated the User schema
     -I added a field for images on the User and Friend schema incase we want to 
      implement profile pictues.
     -I added a "sharedWith" field to the playlist schema so the friend a playlist 
@@ -10,6 +11,19 @@
      There are now two API routes, /User and /Fetch
 		- /User is for all user related requests
 		- /Fetch is for all Spotify API requests
+
+## The New User Schema:</br>
+    name: {type: String, required: true},
+    email: {type: String, required: true},
+    password: {type: String, required: true},
+    image:{type: String},
+    date: {type: Date, default: Date.now},
+    fav_genres : {type : [String]},
+    fav_artists : {type : [String]},
+    fav_tracks : {type : [String]},
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
+
 
 ## Information on the Spotify API:</br>
 	In order to get recommendations, the Spotify API only accepts ArtistIDs and TrackIDs, 

@@ -2,11 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const UserSchema = new mongoose.Schema({
-    firstname: {
-        type: String,
-        required: true,
-    },
-    lastname: {
+    name: {
         type: String,
         required: true,
     },
@@ -34,7 +30,7 @@ const UserSchema = new mongoose.Schema({
     fav_tracks : {
         type : [String]
     },
-    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'User'
     }],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'
     }],
