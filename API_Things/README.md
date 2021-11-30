@@ -98,40 +98,40 @@
 **Get A List Of Matching Artists**</br>
 **/fetch/artists**
     
-        GET request:
+	GET request:
 		Takes in an artist's name, searches it in Spotify's database and returns    
 		an array of possible matches. It returns an array named "artists" that     
 		contains all the matching artists' names, IDs, and images. The max array   
 		size is set at 10.
 
-	    Input json: 
-		    {artist: "artist's name"}
+	Input json: 
+		{artist: "artist's name"}
 
-        Success response: 
-	 	Status(200):
-            		artists = [ 
-               		{
-                    	    name : artist.name,
-                    	    id : artist.id,
-                    	    image : artist.images[2].url
-                	        },
-                	       {},
-                	       {},
-               	 	       ....
-	    		    ]
+	Success response: 
+		200:
+			artists = [ 
+			{
+				name : artist.name,
+				id : artist.id,
+				image : artist.images[2].url
+			},
+			{},
+			{},
+			....
+			]
 
-        No match response:
-        	{"Artists not found"}
+	No match response:
+		{"Artists not found"}
 		
-	    Error responses:
-		    500:
-           	 	    description: artist not found
-  	     	    401:
-           		    description: Bad or expired token
-  	     	    403:
-           		    description: Bad OAuth request
-  	     	    429:
-           		    description: The app has exceeded its rate limits
+	Error responses:
+		500:
+			description: artist not found
+		401:
+			description: Bad or expired token
+		403:
+			description: Bad OAuth request
+		429:
+			description: The app has exceeded its rate limits
 
 **Get A List Of Matching Tracks**</br>
 **/fetch/track**
