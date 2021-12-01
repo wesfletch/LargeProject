@@ -1,5 +1,8 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const crypto = require("crypto");
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+
 
 const reqString = {
     type: String, 
@@ -23,6 +26,8 @@ const User = mongoose.Schema({
     top_artists: Array,
     friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 })
 User.index({display_name: 'text', email: 'text'});
 
@@ -56,6 +61,20 @@ User.methods.comparePassword = function(password,cb)
     });    
 }
 
-//if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
+User.methods.getResetPasswordToken = function () 
+{
+    const resetToken = crypto.randomBytes(20).toString("hex");
+  
+    // Hash token (private key) and save to database
+    this.resetPasswordToken = crypto
+      .createHash(process.env.HASH)
+      .update(resetToken)
+      .digest(process.env.DIGEST);
+  
+    // Set token expire date
+    this.resetPasswordExpire = Date.now() + 10 * (60 * 1000); // Ten Minutes
+  
+    return resetToken;
+};
 
 module.exports = mongoose.model('User', User)
