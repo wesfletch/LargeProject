@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'inlay_pages.dart';
 import 'package:fltr_test/utilities.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatelessWidget {
-  const LoginPage(this.submitUsername, this.submitPassword, this.doLogin, {Key? key}) : super(key: key);
+  const LoginPage(this.submitUsername, this.submitPassword, this.doLogin, this.loginFailed, {Key? key}) : super(key: key);
 
   final Function(String) submitUsername;
   final Function(String) submitPassword;
   final Function doLogin;
+  final bool loginFailed;
 
 
   @override
@@ -63,26 +65,30 @@ class LoginPage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    SizedBox(
-                      width: 400,
-                      height: 40,
-                      child: ElevatedButton(
+                    Expanded(
+                      child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 5, 0), child:
+                      ElevatedButton(
                         onPressed: () {doLogin();},
                         child: const Text("Sign In", style: TextStyle(fontSize: 24)),
-                      ),
+                      ),),
                     ),
-                    SizedBox(
-                      width: 400,
-                      height: 40,
-                      child: ElevatedButton(
+                    Expanded(
+                      child: Padding(padding: const EdgeInsets.fromLTRB(5, 0, 0, 0), child: ElevatedButton(
                         onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => const RegistrationPage()));},
                         child: const Text("Register", style: TextStyle(fontSize: 24)),
                         style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Theme.of(context).scaffoldBackgroundColor), side: MaterialStateProperty.all(const BorderSide(width: 3.0, color: Colors.purple))),
                       ),
-                    ),
+                    ),),
                   ],
                 )
-              )
+              ),
+              Visibility(
+                  child: const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: SizedBox(width: 400, height: 50, child: Card(child: Center(child: Text("Login Failed!", style: TextStyle(fontSize: 20),)), color: Colors.redAccent,),)
+                  ),
+                visible: loginFailed,
+              ),
             ],
           ),
         ]),
@@ -103,19 +109,25 @@ class _RegistrationPageState extends State<RegistrationPage>  {
   List<passwordErrors> _passwordErrors = isValidPassword("");
   String _registrationError = "";
 
+  Future<int> register() async {
+    var body = {"email": _username, "password": _password, "password2": _otherPassword};
+    var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/register"), body: body);
+    if (response.statusCode == 201) {
+      return 0;
+    }
+    else if (response.statusCode == 400)  {
+      return 1;
+    }
+    else  {
+      return 2;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Scaffold(
       body: Center(
         child: Stack(children: [
-          Column(
-              children: [Center(child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
-                  child: RichText(
-                      text: TextSpan(
-                          text: "<appname>",
-                          style: Theme.of(context).textTheme.headline2))))]),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -191,15 +203,27 @@ class _RegistrationPageState extends State<RegistrationPage>  {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      SizedBox(
-                        width: 400,
-                        height: 40,
+                      Expanded(
                         child: ElevatedButton(
                           onPressed: () {
                             if (_passwordErrors.isEmpty && stringsMatch(_password, _otherPassword)) {
-                              // TODO: Register
-                              Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => const RegistrationSuccessfulPage()));
+                              register().then((value) {
+                                if (value == 0) {
+                                  Navigator.pop(context);
+                                  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => const RegistrationSuccessfulPage()));
+                                }
+                                else if (value == 1)  {
+                                  setState(() {
+                                    _registrationError = "Error: Email already registered.";
+                                  });
+                                }
+                                else {
+                                  setState(() {
+                                    _registrationError = "Unknown Registration error, please try again later.";
+                                  });
+                                }
+                              });
+
                             }
                             else  {
                               setState(() {
@@ -231,14 +255,26 @@ class RegistrationSuccessfulPage extends StatelessWidget  {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: Padding(padding: EdgeInsets.all(10), child: RichText(text: TextSpan(text: "Registration successful. Please watch for an email to confirm your email address.", style: Theme.of(context).textTheme.headline1), textAlign: TextAlign.center,))),
+      body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Center(child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: RichText(
+            text: TextSpan(
+                text: "Registration successful.\n\n Please watch for an email to confirm your email address.", style: Theme.of(context).textTheme.headline1), textAlign: TextAlign.center,
+            )
+          )
+        ),
+        Padding(padding: const EdgeInsets.all(10), child: SizedBox(height: 60, width: 500, child: ElevatedButton(onPressed: () {Navigator.pop(context);}, child: const Text("Return to Sign In", style: TextStyle(fontSize: 30),))))
+      ])
     );
   }
 }
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({this.username = "", Key? key}) : super(key: key);
+  const LandingPage({this.username = "", required this.usertoken, this.logout, Key? key}) : super(key: key);
   final String username;
+  final String usertoken;
+  final Function? logout;
   @override
   State<StatefulWidget> createState() => _LandingPageState();
 
@@ -246,21 +282,20 @@ class LandingPage extends StatefulWidget {
 
 class _LandingPageState extends State<LandingPage>  {
   int page = 0;
+  int prevpage = 0;
+  Widget? nav1;
+  Widget? nav2;
+  bool init = false;
 
   @override
   Widget build(BuildContext context) {
-    Widget body;
-    if (page == 0)  {
-      body = TextInlayPage(message: "Welcome, " + widget.username);
-    }
-    else if (page == 1) {
-      body = const TextInlayPage(message: "This is the settings page.");
-    }
-    else  {
-      body = const TextInlayPage(message: "Blah");
+    if (init == false) {
+      init = true;
+      nav1 = HomePage(accesstoken: widget.usertoken);
+      nav2 = AccountPageList(usertoken: widget.usertoken, logout: widget.logout);
     }
     return Scaffold(
-      body: body,
+      body: page == 1 ? nav2 : nav1,
       bottomNavigationBar: BottomNavigationBar(
         onTap: (int pageIndex) {setState(() {
           page = pageIndex;
@@ -302,3 +337,4 @@ class WaitForLoginPage extends StatelessWidget {
     );
   }
 }
+
