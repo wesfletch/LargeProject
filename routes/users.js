@@ -8,9 +8,12 @@ const User = require("../schema/User.js");
 const Friend = require("../schema/Friend.js");
 const Playlist = require("../schema/Playlist.js");
 
+const Validator = require("validator");
+const sendEmail = require("../sendEmail");
+
 // Loading validators
-const validateRegisterInput = require("../Validation/register");
-const validateLoginInput = require("../Validation/login");
+// const validateRegisterInput = require("../Validation/register");
+// const validateLoginInput = require("../Validation/login");
 
 const signToken = userID =>{
     return JWT.sign({
@@ -24,32 +27,75 @@ const signToken = userID =>{
 /*---------------------------------------------------*/
 
 router.post('/register', (req,res) =>
-{
-    // Validation Check
-    const { errors, isValid } = validateRegisterInput(req.body);
-    if (!isValid) {
-        return res.status(400).json(errors);
-    }
-    
-    const {email, password, display_name} = req.body;
+{    
+    const {password, password2, display_name} = req.body;
+    const email = req.body.email.toLowerCase();
+
+    console.log(req.body);
+
     User.findOne({ email }, (err,user) => 
     {
-        if(err)
-            res.status(500).json({message : {msgBody : "Error searching database", msgError: true}});
-        if(user)
+        if (err)
+        {
+            res.status(500).json({message : {msgBody : "Error searching database", msgError: err}});
+        }
+        // check if email is already registered to a user    
+        else if (user)
         {
             res.status(400).json({message : {msgBody : "Email is already taken", msgError: true}});
         }
+        //Checks if email is valid
+        else if(!Validator.isEmail(email))
+        {
+            return res.status(401).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
+        }
+        //Checks if password is a valid length
+        else if(!Validator.isLength(password, { min: 6, max: 30 }))
+        {
+            return res.status(402).json({message : 
+                {msgBody : "Error: Password must be between 6 and 30 characters.", msgError: true}});
+        }
+        //Confirms that both passwords match
+        else if(!Validator.equals(password, password2))
+        {
+            return res.status(403).json({message : {msgBody : "Error: Passwords must match.", msgError: true}});
+        }
+        // ensures all required fields are provided
+        else if (!email || !password || !display_name) {
+            return res.status(405).json({message : {msgBody : "Error: Please provide an email, display_name, and password.", msgError: true}});
+        }
+        // if all of the checks pass, create the new user and attempt to send welcome email
         else
         {
-            const newUser = new User(req.body);
-            console.log(user);
+            const newUser = new User({
+                display_name: req.body.display_name,
+                email: req.body.email,
+                password: req.body.password, 
+            });
             newUser.save(err => 
             {
                 if(err)
                     res.status(500).json({message : {msgBody : "Error saving to database", msgError: true}});
-                else
-                    res.status(201).json({message : {msgBody : "Account successfully created", msgError: false}});
+
+                const message = `
+                <h1>Welcome to ShareTunes!</h1>
+                <p>Thank you for joining our site. We hope you enjoy discovering new music with us!</p>
+                `;
+                
+                // Sends registration email
+                try {
+                    sendEmail({
+                    to: req.body.email,
+                    subject: "Welcome to ShareTunes!",
+                    text: message,
+                    });
+
+                    return res.status(201).json({message : {msgBody : "User successfully saved.", msgError: false}});
+                }
+                catch (err) 
+                {
+                    return res.status(501).json({message : {msgBody : "Error: User saved. Email could not be sent.", msgError: true}});
+                }
             });
         }
     });
