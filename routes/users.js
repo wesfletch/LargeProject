@@ -142,7 +142,7 @@ router.post('/forgot', async(req, res) =>
 
         if (!user) 
         {
-            return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
+            return res.status(400).json({message : {msgBody : "Error: user with given email could not be found.", msgError: true}});
         }
 
         // Gets Reset Token
@@ -167,10 +167,9 @@ router.post('/forgot', async(req, res) =>
                 to: user.email,
                 subject: "Password Reset Request",
                 text: message,
-        });
+            });
 
-        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
-
+            res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
         }
         catch(err)
         {
@@ -183,12 +182,12 @@ router.post('/forgot', async(req, res) =>
 
             res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
         }
-        } 
-        catch (err) 
-        {
-            console.log(err);
-            return res.status(501).json({message : {msgBody : "An error occurred.", msgError: err}});
-        }
+    } 
+    catch (err) 
+    {
+        console.log(err);
+        return res.status(501).json({message : {msgBody : "An error occurred.", msgError: err}});
+    }
 });
 
 // Reset Password Endpoint
