@@ -2,6 +2,7 @@ const router = require("express").Router();
 const passport = require('passport');
 const passportConfig = require('../passport');
 const bcrypt = require('bcrypt');
+const crypto = require("crypto");
 const JWT = require("jsonwebtoken");
 
 const User = require("../schema/User.js");
@@ -126,6 +127,106 @@ router.get('/logout', passport.authenticate('jwt', {session : false}), (req,res)
 {
     res.clearCookie('access_token');
     res.status(200).json({user:{email : ""},success : true});
+});
+
+// Forgot Password Endpoint
+router.post('/forgot', async(req, res) => 
+{
+    // Takes In User's Email
+    const email = req.body.email.toLowerCase();
+  
+    try 
+    { 
+        // Checks if user exists
+        const user = await User.findOne({ email });
+
+        if (!user) 
+        {
+            return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
+        }
+
+        // Gets Reset Token
+        const resetToken = user.getResetPasswordToken();
+
+        await user.save();
+
+        // TODO: this needs to become an actual URL
+        // Create reset url to email to provided email
+        const resetUrl = `http://localhost:5000/passwordreset/${resetToken}`;
+
+        // HTML Message
+        const message = `
+            <h1>You have requested a password reset</h1>
+            <p>Please use the following link to reset your password:</p>
+            <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+            `;
+
+        try
+        {
+            await sendEmail({
+                to: user.email,
+                subject: "Password Reset Request",
+                text: message,
+        });
+
+        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+
+        }
+        catch(err)
+        {
+            console.log(err);
+
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+
+            await user.save();
+
+            res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
+        }
+        } 
+        catch (err) 
+        {
+            console.log(err);
+            return res.status(501).json({message : {msgBody : "An error occurred.", msgError: err}});
+        }
+});
+
+// Reset Password Endpoint
+router.put('/reset/:resetToken', async(req, res) => 
+{
+    // Compares token in URL params to hashed token
+    const resetPasswordToken = crypto
+        .createHash(process.env.HASH)
+        .update(req.params.resetToken)
+        .digest(process.env.DIGEST);
+
+    try 
+    {
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
+        }
+        // Confirms that both passwords match
+        if(!Validator.equals(req.body.password,req.body.password2)){
+            return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: true}});
+        }
+
+        user.password = req.body.password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+        return res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: false}});
+    } 
+    catch (err) 
+    {
+        return res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
+    }
+
 });
 
 // partial text search of User schema $text index
