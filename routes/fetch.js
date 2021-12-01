@@ -50,14 +50,16 @@ spotifyRouter.post("/artist/", (req, res) => {
             const text = {"Error": "Artist not found"};
             console.log("Artist not found");
             res.status(500).send(text.Error);
-            return res;
-            
+            return res;   
         }
-    }).catch((err) => console.log(err));
+    }).catch((err) => 
+    {
+        res.status(501).json({message : {msgBody : "Error retrieving artists.", msgError : true}});
+    });
 });
 
 // Search artists by name
-//This returns an array of matching artists (name, id, image link)
+// This returns an array of matching artists (name, id, image link)
 spotifyRouter.post("/artists/", (req, res) => {
     spotifyApi.searchArtists(req.body.artist, {limit: 10}).then((data) => {
         var artists = [];
@@ -77,7 +79,10 @@ spotifyRouter.post("/artists/", (req, res) => {
         console.log("Matching artists found");
         res.json(artists);
         return artists;
-    }).catch((err) => console.log(err));
+    }).catch((err) => 
+    {
+        res.status(501).json({message : {msgBody : "Error finding artist(s).", msgError : true}});
+    });
 });
 
 // Search tracks by name/get TrackID
@@ -106,7 +111,10 @@ spotifyRouter.post("/track/", (req, res) => {
         console.log("Matching tracks found");
         res.status(200).json(tracks);
         return tracks;
-    }).catch((err) =>console.error(err));
+    }).catch((err) =>
+    {
+        res.status(501).json({message : {msgBody : "Error retrieving track(s).", msgError : true}});
+    });
 });
 
 //Get available genre seeds
@@ -114,7 +122,10 @@ spotifyRouter.post("/track/", (req, res) => {
 spotifyRouter.get("/genres", (req, res) => {
     spotifyApi.getAvailableGenreSeeds().then((data) => {
         res.status(200).json(data.body.genres)
-    }).catch((err) => console.log('Error getting genre list!', err)); 
+    }).catch((err) => 
+    {
+        res.status(501).json({message : {msgBody : "Error retrieving genres.", msgError : true}});
+    });
   
 });
 
@@ -147,7 +158,10 @@ spotifyRouter.post("/recs", (req, res) => {
         console.log("Recommendations found");
         res.status(200).json(tracks);
         return tracks;
-    }).catch((err) => console.log('Error fetching reccomendations!', err)); 
+    }).catch((err) => 
+    {
+        res.status(501).json({message : {msgBody : "Error retrieving recommendations.", msgError : true}});
+    });
 });
 
 
