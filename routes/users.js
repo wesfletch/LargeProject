@@ -31,7 +31,7 @@ router.post('/register', (req,res) =>
         return res.status(400).json(errors);
     }
     
-    const {email, password} = req.body;
+    const {email, password, display_name} = req.body;
     User.findOne({ email }, (err,user) => 
     {
         if(err)
