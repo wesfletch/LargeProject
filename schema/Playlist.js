@@ -9,7 +9,7 @@ const Playlist = mongoose.Schema({
     name: String,
     user: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
     friend: {type: mongoose.Schema.Types.ObjectId, ref: 'Friend', required: false},
-    type: String,
+    // type: String,
     songs: Array,
 })
 

@@ -2,15 +2,19 @@ const router = require("express").Router();
 const passport = require('passport');
 const passportConfig = require('../passport');
 const bcrypt = require('bcrypt');
+const crypto = require("crypto");
 const JWT = require("jsonwebtoken");
 
 const User = require("../schema/User.js");
 const Friend = require("../schema/Friend.js");
 const Playlist = require("../schema/Playlist.js");
 
+const Validator = require("validator");
+const sendEmail = require("../sendEmail");
+
 // Loading validators
-const validateRegisterInput = require("../Validation/register");
-const validateLoginInput = require("../Validation/login");
+// const validateRegisterInput = require("../Validation/register");
+// const validateLoginInput = require("../Validation/login");
 
 const signToken = userID =>{
     return JWT.sign({
@@ -24,32 +28,75 @@ const signToken = userID =>{
 /*---------------------------------------------------*/
 
 router.post('/register', (req,res) =>
-{
-    // Validation Check
-    const { errors, isValid } = validateRegisterInput(req.body);
-    if (!isValid) {
-        return res.status(400).json(errors);
-    }
-    
-    const {email, password} = req.body;
+{    
+    const {password, password2, display_name} = req.body;
+    const email = req.body.email.toLowerCase();
+
+    console.log(req.body);
+
     User.findOne({ email }, (err,user) => 
     {
-        if(err)
-            res.status(500).json({message : {msgBody : "Error searching database", msgError: true}});
-        if(user)
+        if (err)
+        {
+            res.status(500).json({message : {msgBody : "Error searching database", msgError: err}});
+        }
+        // check if email is already registered to a user    
+        else if (user)
         {
             res.status(400).json({message : {msgBody : "Email is already taken", msgError: true}});
         }
+        //Checks if email is valid
+        else if(!Validator.isEmail(email))
+        {
+            return res.status(401).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
+        }
+        //Checks if password is a valid length
+        else if(!Validator.isLength(password, { min: 6, max: 30 }))
+        {
+            return res.status(402).json({message : 
+                {msgBody : "Error: Password must be between 6 and 30 characters.", msgError: true}});
+        }
+        //Confirms that both passwords match
+        else if(!Validator.equals(password, password2))
+        {
+            return res.status(403).json({message : {msgBody : "Error: Passwords must match.", msgError: true}});
+        }
+        // ensures all required fields are provided
+        else if (!email || !password || !display_name) {
+            return res.status(405).json({message : {msgBody : "Error: Please provide an email, display_name, and password.", msgError: true}});
+        }
+        // if all of the checks pass, create the new user and attempt to send welcome email
         else
         {
-            const newUser = new User(req.body);
-            console.log(user);
+            const newUser = new User({
+                display_name: req.body.display_name,
+                email: req.body.email,
+                password: req.body.password, 
+            });
             newUser.save(err => 
             {
                 if(err)
                     res.status(500).json({message : {msgBody : "Error saving to database", msgError: true}});
-                else
-                    res.status(201).json({message : {msgBody : "Account successfully created", msgError: false}});
+
+                const message = `
+                <h1>Welcome to ShareTunes!</h1>
+                <p>Thank you for joining our site. We hope you enjoy discovering new music with us!</p>
+                `;
+                
+                // Sends registration email
+                try {
+                    sendEmail({
+                    to: req.body.email,
+                    subject: "Welcome to ShareTunes!",
+                    text: message,
+                    });
+
+                    return res.status(201).json({message : {msgBody : "User successfully saved.", msgError: false}});
+                }
+                catch (err) 
+                {
+                    return res.status(501).json({message : {msgBody : "Error: User saved. Email could not be sent.", msgError: true}});
+                }
             });
         }
     });
@@ -57,18 +104,21 @@ router.post('/register', (req,res) =>
 
 router.post('/login', passport.authenticate('local', {session : false}), (req,res) => 
 {
-    // Form validation; ensure we've been given all necessary info
-    const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) 
-    {
-        return res.status(400).json(errors);
+    const email = req.body.email.toLowerCase();
+    const password = req.body.password;
+
+    //Checks if email and password is provided
+    if (!email || !password) {
+        res.status(400).json({message : {msgBody : "Error: Please provide an email and password.", msgError : true}});
     }
 
+    // Authorizes user by sending auth cookie
+    // sends token with response
     if (req.isAuthenticated())
     {
        const {_id,email} = req.user;
        const token = signToken(_id);
-       res.cookie('access_token', token, {httpOnly: true, sameSite:true}); 
+       res.cookie('access_token', token, {httpOnly: true, sameSite: true}); 
        res.status(200).json({isAuthenticated : true, user : {email}, token: token});
     }
 });
@@ -77,6 +127,105 @@ router.get('/logout', passport.authenticate('jwt', {session : false}), (req,res)
 {
     res.clearCookie('access_token');
     res.status(200).json({user:{email : ""},success : true});
+});
+
+// Forgot Password Endpoint
+router.post('/forgot', async(req, res) => 
+{
+    // Takes In User's Email
+    const email = req.body.email.toLowerCase();
+  
+    try 
+    { 
+        // Checks if user exists
+        const user = await User.findOne({ email });
+
+        if (!user) 
+        {
+            return res.status(400).json({message : {msgBody : "Error: user with given email could not be found.", msgError: true}});
+        }
+
+        // Gets Reset Token
+        const resetToken = user.getResetPasswordToken();
+
+        await user.save();
+
+        // TODO: this needs to become an actual URL
+        // Create reset url to email to provided email
+        const resetUrl = `http://localhost:5000/passwordreset/${resetToken}`;
+
+        // HTML Message
+        const message = `
+            <h1>You have requested a password reset</h1>
+            <p>Please use the following link to reset your password:</p>
+            <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+            `;
+
+        try
+        {
+            await sendEmail({
+                to: user.email,
+                subject: "Password Reset Request",
+                text: message,
+            });
+
+            res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+        }
+        catch(err)
+        {
+            console.log(err);
+
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+
+            await user.save();
+
+            res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
+        }
+    } 
+    catch (err) 
+    {
+        console.log(err);
+        return res.status(501).json({message : {msgBody : "An error occurred.", msgError: err}});
+    }
+});
+
+// Reset Password Endpoint
+router.put('/reset/:resetToken', async(req, res) => 
+{
+    // Compares token in URL params to hashed token
+    const resetPasswordToken = crypto
+        .createHash(process.env.HASH)
+        .update(req.params.resetToken)
+        .digest(process.env.DIGEST);
+
+    try 
+    {
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
+        }
+        // Confirms that both passwords match
+        if(!Validator.equals(req.body.password,req.body.password2)){
+            return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: true}});
+        }
+
+        user.password = req.body.password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+        return res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: false}});
+    } 
+    catch (err) 
+    {
+        return res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
+    }
+
 });
 
 // partial text search of User schema $text index
