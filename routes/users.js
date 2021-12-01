@@ -103,18 +103,21 @@ router.post('/register', (req,res) =>
 
 router.post('/login', passport.authenticate('local', {session : false}), (req,res) => 
 {
-    // Form validation; ensure we've been given all necessary info
-    const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) 
-    {
-        return res.status(400).json(errors);
+    const email = req.body.email.toLowerCase();
+    const password = req.body.password;
+
+    //Checks if email and password is provided
+    if (!email || !password) {
+        res.status(400).json({message : {msgBody : "Error: Please provide an email and password.", msgError : true}});
     }
 
+    // Authorizes user by sending auth cookie
+    // sends token with response
     if (req.isAuthenticated())
     {
        const {_id,email} = req.user;
        const token = signToken(_id);
-       res.cookie('access_token', token, {httpOnly: true, sameSite:true}); 
+       res.cookie('access_token', token, {httpOnly: true, sameSite: true}); 
        res.status(200).json({isAuthenticated : true, user : {email}, token: token});
     }
 });
