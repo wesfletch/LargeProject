@@ -5,9 +5,7 @@ import './App.css';
 
 function App() {
   return (
-    <div class="main">
-     <LoginPage />
-    </div>
+    <LoginPage />
   );
 }
 

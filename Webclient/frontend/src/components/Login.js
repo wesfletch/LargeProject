@@ -3,13 +3,31 @@ import {Form, Button} from 'react-bootstrap';
 
 function Login()
 {
+    const path = 'https://poosd-f2021-11.herokuapp.com/users/login';
     var email;
     var password;
 
     const doLogin = async event =>
     {
         event.preventDefault();
-        alert("test" + email.value + password.value);
+        //alert("test" + email.value + password.value);
+        var obj = {email:email.value, password:password.value};
+        var js = JSON.stringify(obj);
+        try
+        {
+            const response = await fetch(path, {method:'POST',body:js,headers:{'Content-Type':'application/json'}});
+            var res = JSON.parse(await response.text());
+            if (res.isAuthenticated)
+            {
+                localStorage.setItem('token', res.token);
+                window.location.href = '/home';
+            }
+        }
+        catch(e)
+        {
+            alert(js + e.toString());
+            return;
+        }
     };
 
     return (
