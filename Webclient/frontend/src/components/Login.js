@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {Form, Button} from 'react-bootstrap';
 
 function Login()
@@ -64,7 +65,7 @@ function Login()
                         </Button>
                     </div>
                     <div class="links">
-                        <a>Create account</a>
+                        <Link to={'/register'}>Create Account</Link>
                     </div>
                 </div>
             </div>
