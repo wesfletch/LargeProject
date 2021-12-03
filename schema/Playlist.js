@@ -1,14 +1,10 @@
 const mongoose = require('mongoose')
 
-const reqString = {
-    type: String, 
-    required: true
-}
 
 const Playlist = mongoose.Schema({
     name: String,
     user: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
-    friend: {type: mongoose.Schema.Types.ObjectId, ref: 'Friend', required: false},
+    friend: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false},
     // type: String,
     songs: Array,
 })
