@@ -6,7 +6,6 @@ const crypto = require("crypto");
 const JWT = require("jsonwebtoken");
 
 const User = require("../schema/User.js");
-const Friend = require("../schema/Friend.js");
 const Playlist = require("../schema/Playlist.js");
 
 const Validator = require("validator");
@@ -309,14 +308,6 @@ router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res
         }
     });
 });
-
-// Edit Friend Fields
-// router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
-// {
-//     Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
-//     .then(() => res.status(200).json({message : {msgBody : "Successfully Edited Friend", msgError : false}}))
-//     .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
-// });
 
 // Delete Friend
 router.delete('/friend/:email', passport.authenticate('jwt',{session : false}), (req,res) =>
