@@ -262,26 +262,36 @@ router.post('/search/users', passport.authenticate('jwt', {session : false}), (r
 /*---------------------------------------------------*/
 
 // Add friend
-router.post('/friend', passport.authenticate('jwt', {session : false}) ,(req,res) => 
+router.post('/add/', passport.authenticate('jwt',{session : false}),async(req,res) =>
 {
-    const friend = new Friend(req.body);
-
-    friend.save(err => 
-    {
+    User.findOne({email: req.body.email}, function(err,doc) 
+    { 
         if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else
         {
-            req.user.friends.push(friend);
-            req.user.save(err => 
-            {
-                if(err)
-                    res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-                else
-                    res.status(200).json({message : {msgBody : "Successfully created Friend", msgError : false}});
-            });
+            return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: true}});
         }
-    })
+        // Checks if email is in database
+        if(!doc)
+        { 
+            return res.status(402).json({message : {msgBody : "Error: User not found.", msgError: true}});
+        }
+        // Checks if friend already exists in friend's list
+        if(doc)
+        { 
+            if(req.user.friends.indexOf(doc.id.toString()) === -1) 
+            {
+                User.findByIdAndUpdate({_id:req.user._id},{$push:{friends : doc._id}})
+                .then(() =>User.findByIdAndUpdate(doc._id,{$push:{friends : req.user.id}}))
+                .then(() => res.status(200).json({message : {msgBody : "Successfully  added friend.", msgError: false}}))
+                .catch(err => res.status(501).json({message : {msgBody : "Error adding friend.", msgError: true}}));
+            }
+            else
+            {
+                // Else friend already exists in friend's list
+                return res.status(401).json({message : {msgBody : "Error: User is already your friend.", msgError: true}});
+            }
+        }
+    });
 });
 
 // Get all friends
@@ -301,19 +311,34 @@ router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res
 });
 
 // Edit Friend Fields
-router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Edited Friend", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
-});
+// router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
+// {
+//     Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
+//     .then(() => res.status(200).json({message : {msgBody : "Successfully Edited Friend", msgError : false}}))
+//     .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+// });
 
 // Delete Friend
-router.delete('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
+router.delete('/friend/:email', passport.authenticate('jwt',{session : false}), (req,res) =>
 {
-    Friend.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Friend", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+    User.findOne({email : req.params.email}, (err, friend) => 
+    {
+        if (err)
+        {
+            console.log(err);
+            return res.status(501).json({message : {msgBody : "Could not find user with given email.", msgError: true}});
+        }
+        else
+        {
+            User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: friend._id}})
+                .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: false}}))
+                .catch(err => 
+                {
+                    console.log(err);
+                    res.status(500).json({message : {msgBody : "Error deleting friend.", msgError: true}})
+                });
+        }
+    });
 });
 
 /*---------------------------------------------------*/

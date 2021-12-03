@@ -10,21 +10,13 @@ const reqString = {
 }
 
 const User = mongoose.Schema({
-    country: String,
     display_name: String,
     email: String,
-    spotify_uri: String,
-    link: String,
-    ID: String,
     password: String,
-    profile_image: String,
-    product: String,
-    type: String,
-    access_token: String,
-    refresh_token: String,
-    top_music: Array,
-    top_artists: Array,
-    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
+    fav_genres : {type : [String]},
+    fav_artists : {type : [String]},
+    fav_tracks : {type : [String]},
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'User'}],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
     resetPasswordToken: String,
     resetPasswordExpire: Date
