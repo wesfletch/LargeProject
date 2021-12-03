@@ -336,24 +336,26 @@ router.delete('/friend/:email', passport.authenticate('jwt',{session : false}), 
 //                   Playlist APIs
 /*---------------------------------------------------*/
 // Add Playlist
-router.post('/playlist', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.post('/addplaylist', passport.authenticate('jwt', {session : false}), (req,res) =>
 {
-    const playlist = new Playlist(req.body);
-    playlist.user = req.user.id;    // add user ID to new playlist
+    const playlist = new Playlist({
+        name : req.body.name,
+        songs : req.body.songs,
+        user : req.user.id,
+    });
 
     playlist.save(err => 
     {
         if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else
-        {
+            res.status(500).json({message : {msgBody : "Error adding playlist.", msgError: true}});
+        else{
             req.user.playlists.push(playlist);
             req.user.save(err =>
             {
                 if(err)
-                    res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+                    res.status(501).json({message : {msgBody : "Error saving playlist.", msgError: true}});
                 else
-                    res.status(200).json({message : {msgBody : "Successfully created a Playlist", msgError : false}});
+                    res.status(200).json({message : {msgBody : "Successfully created paylist.", msgError: false}});
             });
         }
     })
@@ -366,7 +368,6 @@ router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,r
     {
         if(err)
         {
-            console.log(err);
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
         }
         else
