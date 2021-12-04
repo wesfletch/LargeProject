@@ -32,6 +32,13 @@
   border-color: rgb(156, 39, 176);
 }
 
+.btn-welcomeBtn {
+  margin-bottom: 5%;
+  color: rgb(255, 255, 255);
+  border-radius: 2px; 
+  border-color: rgb(156, 39, 176);
+}
+
 .btn-big {
   padding: 0.3rem 10rem;
   font-size: 1.4rem;
