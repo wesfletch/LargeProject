@@ -16,11 +16,13 @@ function Login()
         var js = JSON.stringify(obj);
         try
         {
-            const response = await fetch(path, {method:'POST',body:js,headers:{'Content-Type':'application/json'}});
+            const response = await fetch(path, {method:'POST',credentials: 'same-origin',body:js,headers:{'Content-Type':'application/json'}});
             var res = JSON.parse(await response.text());
             if (res.isAuthenticated)
             {
-                localStorage.setItem('token', res.token);
+                //alert("access_token=" + res.token);
+                //document.cookie = "access_token=" + res.token;
+                //localStorage.setItem('token', res.token);
                 window.location.href = '/home';
             }
         }
