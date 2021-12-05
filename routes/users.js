@@ -401,7 +401,7 @@ router.get('/playlist/:id', passport.authenticate('jwt', {session : false}), (re
 });
 
 // Edit Playlist
-router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res) => 
+router.put('/playlist/:id', passport.authenticate('jwt',{session : false}), (req,res) => 
 {
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
     .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
@@ -430,6 +430,7 @@ router.delete('/playlist/:id', passport.authenticate('jwt', {session : false}), 
     });
 
 });
+
 /*---------------------------------------------------*/
 //                   Profile API
 /*---------------------------------------------------*/
