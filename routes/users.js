@@ -404,8 +404,8 @@ router.get('/playlist/:id', passport.authenticate('jwt', {session : false}), (re
 router.put('/playlist/:id', passport.authenticate('jwt',{session : false}), (req,res) => 
 {
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+            .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
+            .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
 // Delete Playlist
@@ -422,8 +422,8 @@ router.delete('/playlist/:id', passport.authenticate('jwt', {session : false}), 
         else 
         {
             // delete the playlist from Playlists DB
-    Playlist.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
+            Playlist.findByIdAndDelete(req.params.id)
+                .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
                 .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 
         }
