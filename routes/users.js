@@ -430,6 +430,32 @@ router.delete('/playlist/:id', passport.authenticate('jwt', {session : false}), 
     });
 
 });
+/*---------------------------------------------------*/
+//                   Profile API
+/*---------------------------------------------------*/
+
+// add fav_track (given valid Spotify track ID)
+router.put('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_tracks : req.params.id}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_track", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// add fav_genre (given valid Spotify genre)
+router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_genres : req.params.genre}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_genre", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// add fav_artist (given valid Spotify artist ID)
+router.put('/fav_artist/:artist', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_artists : req.params.artist}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_artist", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
 /*---------------------------------------------------*/
