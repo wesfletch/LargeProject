@@ -409,10 +409,27 @@ router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,
 });
 
 // Delete Playlist
-router.delete('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
+router.delete('/playlist/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    // remove the playlist from the users playlists array
+    User.updateOne({_id : req.user.id}, {$pullAll: { playlists : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            console.log(err);
+            return res.status(500).json({message : {msgBody : "Could not find playlist for User", msgError: true}});
+        }
+        else 
+        {
+            // delete the playlist from Playlists DB
     Playlist.findByIdAndDelete(req.params.id)
     .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+                .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+
+        }
+    });
+
+});
 });
 
 /*---------------------------------------------------*/
