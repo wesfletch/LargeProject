@@ -296,7 +296,9 @@ router.post('/add/', passport.authenticate('jwt',{session : false}),async(req,re
 // Get all friends
 router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
-    User.findById({_id : req.user._id}).populate('friends').exec((err,document) => 
+    User.findById({_id : req.user._id})
+        .populate('friends', 'display_name email fav_genres fav_artists fav_tracks friends playlists')
+        .exec((err,document) => 
     {
         if(err)
         {
@@ -361,12 +363,14 @@ router.post('/addplaylist', passport.authenticate('jwt', {session : false}), (re
     })
 });
 
-// Get user's playlists
+// Get user's playlists (minus songs)
 router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
-    User.findById({_id : req.user._id}).populate('playlists').exec((err,document) => 
+    User.findById({_id : req.user._id})
+        .populate('playlists', 'name friend')
+        .exec((err,document) => 
     {
-        if(err)
+        if (err)
         {
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
         }
@@ -377,19 +381,133 @@ router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,r
     });
 });
 
+// Get full playlist (plus songs)
+router.get('/playlist/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
+    Playlist.findById({_id : req.params.id})
+            .populate('songs')
+            .exec((err, playlist) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({playlist : playlist, authenticated: true});
+        }
+    });
+
+});
+
 // Edit Playlist
-router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res) => 
+router.put('/playlist/:id', passport.authenticate('jwt',{session : false}), (req,res) => 
 {
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+            .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
+            .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
 // Delete Playlist
-router.delete('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    Playlist.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+router.delete('/playlist/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    // remove the playlist from the users playlists array
+    User.updateOne({_id : req.user.id}, {$pullAll: { playlists : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            console.log(err);
+            return res.status(500).json({message : {msgBody : "Could not find playlist for User", msgError: true}});
+        }
+        else 
+        {
+            // delete the playlist from Playlists DB
+            Playlist.findByIdAndDelete(req.params.id)
+                .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
+                .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+
+        }
+    });
+
+});
+
+/*---------------------------------------------------*/
+//                   Profile API
+/*---------------------------------------------------*/
+
+// add fav_track (given valid Spotify track ID)
+router.put('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_tracks : req.params.id}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_track", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_track (given valid Spotify track ID)
+router.delete('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_tracks : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_track", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_track", msgError: false}});
+        }
+    });
+
+});
+
+// add fav_genre (given valid Spotify genre)
+router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_genres : req.params.genre}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_genre", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_genre (given valid Spotify genre string)
+router.delete('/fav_genre/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_genres : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_genre", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_genre", msgError: false}});
+        }
+    });
+
+});
+
+// add fav_artist (given valid Spotify artist ID)
+router.put('/fav_artist/:artist', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_artists : req.params.artist}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_artist", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_artist (given valid Spotify artist ID)
+router.delete('/fav_artist/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_artists : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_artist", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_artist", msgError: false}});
+        }
+    });
+
 });
 
 /*---------------------------------------------------*/
