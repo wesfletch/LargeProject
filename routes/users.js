@@ -443,6 +443,23 @@ router.put('/fav_track/:id', passport.authenticate('jwt', {session : false}), (r
         .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
+// remove fav_track (given valid Spotify track ID)
+router.delete('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_tracks : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_track", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_track", msgError: false}});
+        }
+    });
+
+});
+
 // add fav_genre (given valid Spotify genre)
 router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}), (req,res) =>
 {
@@ -451,12 +468,46 @@ router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}),
         .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
 });
 
+// remove fav_genre (given valid Spotify genre string)
+router.delete('/fav_genre/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_genres : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_genre", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_genre", msgError: false}});
+        }
+    });
+
+});
+
 // add fav_artist (given valid Spotify artist ID)
 router.put('/fav_artist/:artist', passport.authenticate('jwt', {session : false}), (req,res) =>
 {
     User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_artists : req.params.artist}})
         .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_artist", msgError : false}}))
         .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_artist (given valid Spotify artist ID)
+router.delete('/fav_artist/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_artists : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_artist", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_artist", msgError: false}});
+        }
+    });
+
 });
 
 /*---------------------------------------------------*/
