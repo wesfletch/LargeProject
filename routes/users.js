@@ -381,6 +381,25 @@ router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,r
     });
 });
 
+// Get full playlist (plus songs)
+router.get('/playlist/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
+    Playlist.findById({_id : req.params.id})
+            .populate('songs')
+            .exec((err, playlist) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({playlist : playlist, authenticated: true});
+        }
+    });
+
+});
+
 // Edit Playlist
 router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res) => 
 {
