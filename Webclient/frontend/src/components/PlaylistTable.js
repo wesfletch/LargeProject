@@ -1,9 +1,42 @@
 import React, {useEffect, useState} from 'react';
-import reportWebVitals from '../reportWebVitals';
+import {Button} from 'react-bootstrap';
 
 function PlaylistTable()
 {
     const [playlists, setPlaylists] = useState(null);
+    const [rows, setRows] = useState([]);
+    const [deleted, setDeleted] = useState(null);
+    function getPath()
+    {
+        if (process.env.NODE_ENV === 'production')
+        {
+            return 'https://poosd-f2021-11.herokuapp.com/users/playlist/';
+        }
+        else
+        {
+            return 'http://localhost:5000/users/playlist/';
+        }
+    }
+    async function doDeletePlaylist(name) {
+        //event.preventDefault();
+        var id = sessionStorage.getItem(name);
+        try
+        {
+            const response = await fetch(getPath() + id, {method:'DELETE',credentials:'include',headers:{'Content-Type':'application/json'}});
+            var res = JSON.parse(await response.text());
+            if (!res.message.msgError)
+            {
+                let items = rows.filter(row => row != name);
+                setDeleted(deleted + 1);
+                setRows(items);
+            }
+        }
+        catch(e)
+        {
+            alert(e.toString());
+            return;
+        }
+    }
     function getOtherPath()
     {
         if (process.env.NODE_ENV === 'production')
@@ -20,19 +53,26 @@ function PlaylistTable()
             let response = await fetch(getOtherPath(), {method:'GET',credentials:'include',headers:{'Content-Type':'application/json'}});
             response = await response.json();
             setPlaylists(response);
-            //alert(JSON.stringify(playlists.playlists[0].name));
         }
         getPlaylists();
-        //return () => {createTable();}
-        //alert(JSON.stringify(playlists.playlists[0].name));
     }, []);
     if (playlists != null)
     {
-        const rows = [];
-        for (var i = 0; i < playlists.playlists.length; i++)
+        if (rows.length == 0 && deleted == null)
         {
-            //rows.push(playlists.playlists[i].name):
-            rows.push(JSON.stringify(playlists.playlists[i].name).replaceAll('"',''));
+            setDeleted(0);
+            const items = [];
+            for (var i = 0; i < playlists.playlists.length; i++)
+            {
+                var x = JSON.stringify(playlists.playlists[i].name).replaceAll('"','');
+                items.push(x);
+                sessionStorage.setItem(playlists.playlists[i].name, playlists.playlists[i]._id);
+            }
+            setRows(items);
+        }
+        if (rows.length != (playlists.playlists.length - deleted))
+        {
+            return null;
         }
         return (
             <div>
@@ -40,6 +80,9 @@ function PlaylistTable()
                     {rows.map((r) => (
                         <tr>
                             <td>{r}</td>
+                            <Button variant='signInBtn' size="big" onClick={async () => {await doDeletePlaylist(r);}}>
+                            Delete
+                            </Button>
                         </tr>
                     ))}
                 </table>
