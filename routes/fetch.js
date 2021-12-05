@@ -164,6 +164,19 @@ spotifyRouter.post("/recs", (req, res) => {
     });
 });
 
+spotifyRouter.post("/track/info/:id", (req, res) =>
+{
+    spotifyApi.getTrack(req.params.id).then((track) =>
+    {
+        // console.log(track);
+        res.status(200).json(track);
+    }).catch((err) =>
+    {   
+        console.log(err);
+        res.status(501).json({message : {msgBody : "Error retrieving track.", msgError : true}});
+    });
+});
+
 
 module.exports = spotifyRouter;
 
