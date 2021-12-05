@@ -363,12 +363,14 @@ router.post('/addplaylist', passport.authenticate('jwt', {session : false}), (re
     })
 });
 
-// Get user's playlists
+// Get user's playlists (minus songs)
 router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
-    User.findById({_id : req.user._id}).populate('playlists').exec((err,document) => 
+    User.findById({_id : req.user._id})
+        .populate('playlists', 'name friend')
+        .exec((err,document) => 
     {
-        if(err)
+        if (err)
         {
             res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
         }
