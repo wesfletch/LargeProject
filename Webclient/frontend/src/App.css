@@ -93,3 +93,7 @@ a {
 a:hover {
   color: rgb(33,36,34);
 }
+
+table {
+  color: rgb(255, 255, 255);
+}
