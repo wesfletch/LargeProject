@@ -296,7 +296,9 @@ router.post('/add/', passport.authenticate('jwt',{session : false}),async(req,re
 // Get all friends
 router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res) => 
 {
-    User.findById({_id : req.user._id}).populate('friends').exec((err,document) => 
+    User.findById({_id : req.user._id})
+        .populate('friends', 'display_name email fav_genres fav_artists fav_tracks friends playlists')
+        .exec((err,document) => 
     {
         if(err)
         {
