@@ -29,11 +29,12 @@ class _RecsAppState extends State<RecsApp> {
     _checkUserToken();
   }
 
-  void logout() async {
+  void logout(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     setState(() {
       _userToken = null;
+      Navigator.of(context).pop();
     });
   }
 
@@ -44,7 +45,6 @@ class _RecsAppState extends State<RecsApp> {
       _userToken = prefs.getString("userToken");
       _loaded = true;
       // Try to login, if no worko, set user token to null
-
       var response = await http.get(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/authenticated"), headers: {"Cookie": 'access_token=$_userToken'});
       print(response.body);
       print(_userToken);

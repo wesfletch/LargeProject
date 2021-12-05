@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'inlay_pages.dart';
 import 'package:fltr_test/utilities.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatelessWidget {
   const LoginPage(this.submitUsername, this.submitPassword, this.doLogin, this.loginFailed, {Key? key}) : super(key: key);
@@ -91,7 +92,68 @@ class LoginPage extends StatelessWidget {
               ),
             ],
           ),
+          Column(mainAxisAlignment: MainAxisAlignment.end, children: [Row(children: [Expanded(
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: ElevatedButton(onPressed: () {Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => const ForgotPasswordPage()));}, child: const Text("Forgot Password"), style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Theme.of(context).scaffoldBackgroundColor), side: MaterialStateProperty.all(const BorderSide(width: 3.0, color: Colors.purple))),)
+            ),
+          )]),]),
         ]),
+      ),
+    );
+  }
+}
+
+class ForgotPasswordPage extends StatefulWidget  {
+  const ForgotPasswordPage({Key? key}) : super(key: key);
+  @override
+  State<StatefulWidget> createState() {
+    return _ForgotPasswordState();
+  }
+}
+
+class _ForgotPasswordState extends State<ForgotPasswordPage>  {
+  String email = "";
+
+  void resetPassword(String email) async {
+    // TODO: Send password reset request once apis are up.
+    var body = {"email": email};
+    var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/forgot"), headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    }, body: jsonEncode(body));
+    print("here");
+    print(response.toString());
+    print(response.body);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Forgot Password"), centerTitle: true,),
+      body: Column(mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(children: [Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: TextField(
+                onChanged: (String input) {email = input;},
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  hintText: "123@gmail.com",
+                ),
+              ),
+            ),
+          ),]),
+          Row(children: [Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: ElevatedButton(
+                onPressed: () {resetPassword(email);},
+                child: const Text("Reset Password"),
+              ),
+            ),
+          ),],),
+        ],
       ),
     );
   }
@@ -106,12 +168,15 @@ class _RegistrationPageState extends State<RegistrationPage>  {
   String? _password;
   String? _username;
   String? _otherPassword;
+  String _displayName = "";
   List<passwordErrors> _passwordErrors = isValidPassword("");
   String _registrationError = "";
 
   Future<int> register() async {
-    var body = {"email": _username, "password": _password, "password2": _otherPassword};
-    var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/register"), body: body);
+    var body = {"display_name": _displayName, "email": _username, "password": _password, "password2": _otherPassword};
+    var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/register"), headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    }, body: jsonEncode(body));
     if (response.statusCode == 201) {
       return 0;
     }
@@ -126,23 +191,13 @@ class _RegistrationPageState extends State<RegistrationPage>  {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      appBar: AppBar(title: const Text("Register"), centerTitle: true,),
+      body: SafeArea(
         child: Stack(children: [
-          Column(
+          SingleChildScrollView(child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 10, 0, 20),
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Register",
-                      style: Theme.of(context).textTheme.headline1,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
+              Row(children: [Expanded(child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: TextField(
                   onChanged: (String? a) {_username = a;},
@@ -152,7 +207,17 @@ class _RegistrationPageState extends State<RegistrationPage>  {
                   ),
                   autofocus: true,
                 ),
-              ),
+              )),]),
+              Row(children: [Expanded(child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: TextField(
+                  onChanged: (String a) {_displayName = a;},
+                  decoration: const InputDecoration(
+                    labelText: "Display Name",
+                    hintText: "Joey Smith",
+                  ),
+                ),
+              ),)]),
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
@@ -171,7 +236,7 @@ class _RegistrationPageState extends State<RegistrationPage>  {
                     ]
                 )
               ),
-              Padding(
+              Row(children: [Expanded(child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: TextField(
                   onChanged: (String? a) {setState(() {
@@ -184,8 +249,8 @@ class _RegistrationPageState extends State<RegistrationPage>  {
                     hintText: "Enter password here",
                   ),
                 ),
-              ),
-              Padding(
+              )),]),
+              Row(children: [Expanded(child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: TextField(
                   onChanged: (String? a) {setState(() {
@@ -197,7 +262,7 @@ class _RegistrationPageState extends State<RegistrationPage>  {
                     hintText: "Enter password again",
                   ),
                 ),
-              ),
+              ),)]),
               Padding(
                   padding: const EdgeInsets.all(10),
                   child: Row(
@@ -242,7 +307,7 @@ class _RegistrationPageState extends State<RegistrationPage>  {
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.clear, color: Colors.red,), Text(_registrationError)],),
               ) : const Text(""),
             ],
-          ),
+          )),
         ]),
       ),
     );
@@ -271,10 +336,10 @@ class RegistrationSuccessfulPage extends StatelessWidget  {
 }
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({this.username = "", required this.usertoken, this.logout, Key? key}) : super(key: key);
+  const LandingPage({this.username = "", required this.usertoken, required this.logout, Key? key}) : super(key: key);
   final String username;
   final String usertoken;
-  final Function? logout;
+  final Function(BuildContext) logout;
   @override
   State<StatefulWidget> createState() => _LandingPageState();
 

@@ -31,9 +31,9 @@ class _TextInlayPageState extends State<TextInlayPage>  {
 }
 
 class LogoutPage extends StatefulWidget {
-  const LogoutPage({this.message = "", this.logout, Key? key}) : super(key: key);
+  const LogoutPage({this.message = "", required this.logout, Key? key}) : super(key: key);
   final String message;
-  final Function? logout;
+  final Function(BuildContext) logout;
   @override
   State<StatefulWidget> createState() => _LogoutPageState();
 }
@@ -41,23 +41,22 @@ class LogoutPage extends StatefulWidget {
 class _LogoutPageState extends State<LogoutPage>  {
   @override
   Widget build(BuildContext context) {
-    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [Center(
-      child: RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          text: widget.message,
-          style: Theme.of(context).textTheme.headline1,
-        ),
-      ),
-    ),
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Center(
-        child: Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: ElevatedButton(onPressed: () {widget.logout!(); }, child: const Text("Back to Sign In", style: TextStyle(fontSize: 20),),)
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            text: widget.message,
+            style: Theme.of(context).textTheme.headline1,
           ),
         ),
-      )
+      ),
+      Row(children: [Expanded(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+          child: ElevatedButton(onPressed: () {widget.logout(context); }, child: const Text("Back to Sign In", style: TextStyle(fontSize: 20),),)
+        ),
+      )])
     ]);
   }
 }
@@ -67,8 +66,8 @@ class SettingsEntry extends ListTile {
 }
 
 class AccountPageList extends StatefulWidget {
-  const AccountPageList({required this.usertoken, this.logout, Key? key}) : super(key: key);
-  final Function? logout;
+  const AccountPageList({required this.usertoken, required this.logout, Key? key}) : super(key: key);
+  final Function(BuildContext) logout;
   final String usertoken;
   @override
   State<StatefulWidget> createState() => _AccountPageListState();
@@ -93,15 +92,13 @@ class _AccountPageListState extends State<AccountPageList>  {
 }
 
 class FriendEntry extends ListTile {
-  FriendEntry({required String name, Key? key}) : super(title: Text("$name"), onTap: (){}, key: key);
+  FriendEntry({required String name, required Function(String) delete, Key? key}) : super(title: Text(name), trailing: InkWell(child: const Icon(Icons.delete), onTap: () {delete(name);},), key: key);
 }
 
 class FriendsPage extends StatefulWidget  {
-  FriendsPage({required this.usertoken, Key? key}) : super(key: key);
+  const FriendsPage({required this.usertoken, Key? key}) : super(key: key);
 
   final String usertoken;
-
-
 
   @override
   State<StatefulWidget> createState() => _FriendsPageState();
@@ -110,21 +107,59 @@ class FriendsPage extends StatefulWidget  {
 class _FriendsPageState extends State<FriendsPage>  {
   List<Widget> friendsEntries = [];
   List<String> friends = [];
+  bool init = false;
+
+  void reqAddFriend(String friend) async  {
+    addFriend(friend);
+
+    var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/add"), headers: {"Cookie": 'access_token=${widget.usertoken}', 'Content-Type': 'application/json; charset=UTF-8',},
+        body: jsonEncode({"email": friend}));
+
+    print(response.body);
+    getFriends();
+  }
+
+  void deleteFriend(String friend) async  {
+    print(friend);
+    Iterable<String> components = friend.split(RegExp(r"\((?=.+\)$)"));
+    String name = components.elementAt(0).trimRight();
+    print(name);
+    String email = components.elementAt(1).replaceAll(RegExp(r"\)$"), "");
+    print(email);
+    var response = await http.delete(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/friend/$email"), headers: {"Cookie": 'access_token=${widget.usertoken}'});
+    print(response.body);
+    getFriends();
+  }
+  
   void addFriend(String friend) {
-    setState(() {
       friends.add(friend);
-      friendsEntries.add(FriendEntry(name: friend));
-    });
+      friendsEntries.add(FriendEntry(name: friend, delete: deleteFriend,));
   }
 
   void getFriends() async {
     // TODO: Load initial friends list
+    var response = await http.get(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/friends"), headers: {"Cookie": 'access_token=${widget.usertoken}'});
+    var body = jsonDecode(response.body);
+    print(body);
+    friendsEntries.clear();
+    friends.clear();
+    for (Map friend in body["friends"]) {
+      addFriend("${friend["display_name"]} (${friend["email"]})");
+    }
+    setState(() {
+
+    });
   }
 
   @override
   Widget build(BuildContext context)  {
+    if (!init) {
+      getFriends();
+      init = true;
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Friends"), centerTitle: true, actions: [IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => AddFriendPage(usertoken: widget.usertoken, addFriend: addFriend)));}, icon: const Icon(Icons.add))],),
+      appBar: AppBar(title: const Text("Friends"), centerTitle: true, actions: [IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => AddFriendPage(usertoken: widget.usertoken, addFriend: reqAddFriend)));}, icon: const Icon(Icons.add))],),
       body: friendsEntries.isEmpty ? const TextInlayPage(message: "No friends! \n(or list is still loading)") : ListView(children: friendsEntries),
     );
   }
@@ -170,7 +205,7 @@ class _AddFriendPageState extends State<AddFriendPage>  {
                   )
               ),
             ),]),
-            Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(10), child: ElevatedButton(child: const Text("Hello"), onPressed: () {addFriend(_toAdd);},))),]),
+            Row(children: [Expanded(child: Padding(padding: const EdgeInsets.all(10), child: ElevatedButton(child: const Text("Add Friend"), onPressed: () {addFriend(_toAdd);},))),]),
           ],
         ),
     ));
@@ -206,8 +241,26 @@ class _SongPageState extends State<SongPage>  {
   List<Widget> songTiles = [];
 
   void getRecs(BuildContext context) async  {
-    var songsToUse = songs.take(5).toList().map((e) => e["id"]).toList();
-    var body = {"seed_tracks": songsToUse, "seed_genres": [], "seed_artists": []};
+    List<Map> thingsToUse = songs.reversed.take(5).toList();
+    List<String> songsToUse = [];
+    List<String> genresToUse = [];
+    List<String> artistToUse = [];
+    for (Map thing in thingsToUse)  {
+      if (thing["type"] == "artist")  {
+        var body = {"artist": thing["data"]};
+        var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/fetch/artist"), headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',}, body: jsonEncode(body));
+        var artist = jsonDecode(response.body);
+        artistToUse.add(artist["id"]);
+      }
+      else if (thing["type"] == "genre")  {
+        genresToUse.add(thing["data"]);
+      }
+      else  {
+        songsToUse.add(thing["data"]["id"]);
+      }
+    }
+    var body = {"seed_tracks": songsToUse, "seed_genres": genresToUse, "seed_artists": artistToUse};
     var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/fetch/recs"), headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     }, body: jsonEncode(body));
@@ -219,11 +272,33 @@ class _SongPageState extends State<SongPage>  {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Scaffold(body: SafeArea(
+    return Scaffold(appBar: AppBar(title: const Text("Songs for me"), centerTitle: true,),
+        body: SafeArea(
         child: Column(mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Padding(padding: EdgeInsets.all(10), child: Text("Choose up to 5 songs.", style: TextStyle(fontSize: 20),)),
-            Padding(padding: const EdgeInsets.all(10), child: SongSearch(onSelected: (Map thing) {setState(() {if (thing["name"] != null) {songs.add(thing); songTiles.add(ListTile(title: Text("${thing["name"]} (${thing["artist"]})")));}});}, accesstoken: widget.accesstoken,),),
+            const Padding(padding: EdgeInsets.all(10), child: Text("Choose up to 5 songs, genres, or artists", style: TextStyle(fontSize: 18),)),
+            Padding(padding: const EdgeInsets.all(10), child: SongSearch(onSelected:
+              (Map thing) {
+                setState(() {
+                  if (thing["type"] == "song") {
+                    if (thing["data"]["name"] != null) {
+                      songs.add(thing);
+                      songTiles.add(ListTile(title: Text(
+                          "${thing["data"]["name"]} (${thing["data"]["artist"]})")));
+                    }
+                  }
+                  else {
+                    if (thing["type"] != null) {
+                      songs.add(thing);
+                      songTiles.add(
+                          ListTile(title: Text(
+                              "${thing["data"]} (${thing["type"]})"
+                          ),)
+                      );
+                    }
+                  }
+                });
+              }, accesstoken: widget.accesstoken,),),
             Expanded(child:
               ListView(children: songTiles,)
             ),
