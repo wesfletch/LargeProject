@@ -12,6 +12,13 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
+//----------------Swagger Things-------------------
+YAML = require('yamljs')
+const swaggerUi=require('swagger-ui-express');
+const swaggerJsDoc = YAML.load('./swagger.yaml')
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerJsDoc));
+//--------------------------------------------------
+
 //Enable Cors
 app.use((req, res, next) => 
 {

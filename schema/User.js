@@ -11,7 +11,7 @@ const reqString = {
 const User = new mongoose.Schema({
     display_name: {type: String, required: true, trim: true},
     email: {type: String, required: true, lowercase: true, trim: true},
-    password: {type: String, required: true, trim: true},
+    password: {type: String, required: true},
     image:{type: String, trim: true},
     date: {type: Date, default: Date.now},
     fav_genres : [{type: String, _id: false}],
@@ -25,13 +25,11 @@ const User = new mongoose.Schema({
 });
 User.index({display_name: 'text', email: 'text'});
 
-//For password encryption
-User.pre('save', function(next)
-{
+//Encrypts the user's password before saving
+User.pre('save',function(next){
     if(!this.isModified('password'))
         return next();
-    bcrypt.hash(this.password,10,(err,passwordHash) => 
-    {
+    bcrypt.hash(this.password,10,(err,passwordHash)=>{
         if(err)
             return next(err);
         this.password = passwordHash;
@@ -60,22 +58,16 @@ User.methods.getResetPasswordToken = function () {
 };
 
 //Compares password for authentication
-User.methods.comparePassword = function(password,cb) 
-{
-    // no need to hash our password beforehand, bcrypt does this for us
-    // just compare plaintext password to (hashed) User password
-    bcrypt.compare(password, this.password, (err,isMatch) => 
-    {
+User.methods.comparePassword = function(password,callback){
+    bcrypt.compare(password,this.password,(err,isMatch)=>{
         if(err)
-            return cb(err);
+            return callback(err);
         else{
             if(!isMatch)
-                return cb(null,isMatch);
-            return cb(null,this);
+                return callback(null,isMatch);
+            return callback(null,this);
         }
-    });    
-}
+    });
+};
 
-//if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
-
-module.exports = mongoose.model('User', User)
+module.exports = mongoose.model('User', User);

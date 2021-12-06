@@ -1,0 +1,1263 @@
+openapi: 3.0.0
+info: 
+  version: 1.0.0
+  title: ShareTunes
+  description: SpotifyAPI Information
+  contact:
+    name: Group 11
+Servers: 
+  - url: http://localhost:5000
+tags: 
+  - name: fetch
+    description: All Spotify API requests.
+  - name: user
+    description: All API requests related to the user.
+  - name: friend
+    description: All API requests related to friends.
+  - name: playlist
+    description: All API requests related to playlists.
+  - name: fetchV2
+    description: (NEW) All Spotify API requests based on url parameters, since swaggerhub does not permit
+      GET requests to have a request body.
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - display_name
+        - email
+        - password
+      properties:
+        display_name:
+          type: string
+          description: User's display name (not unique).
+        email:
+          type: string
+          description: User's email.
+        image:
+          type: string
+          description: User's profile image.
+        date:
+          type: string
+          description: Date of account creation.
+        fav_genres:
+          type: array
+          items:
+            type: string
+          description: Array of user's favorite genres.
+        fav_artists:
+          type: array
+          items:
+            type: string
+          description: Array of user's favorite artists.
+        fav_tracks:
+          type: array
+          items:
+            type: string
+          description: Array of user's favorite songs.
+        friends:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          description: Array of user's friend's object IDs.
+        playlists:
+          type: array
+          items:
+            type: string
+          description: Array of user's playlists object IDs.
+        resetPasswordToken:
+          type: string
+          description: Token to reset the password.
+        resetPasswordExpire:
+          type: string
+          description: Time at which the reset token will expire.
+        verificationToken:
+          type: boolean
+          default: false
+
+    Playlist:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the playlist (not unique).
+        user:
+          type: string
+          description: User's objectID.
+        friend:
+          type: string
+          description: The objectID of the friend with whom the user created the playlist.
+        songs:
+          type: array
+          items:
+            type: string
+          description: Array of the song names in the playlist.
+        tracks:
+          description: Array of the playlist's tracks with included spotify information.
+          type: object
+          properties:
+            _id:
+              type: string
+              description: The objectID of the track. Needed to delete an individual track. NOT to be confused with the id field!
+            name:
+              type: string
+            id:
+              type: string
+              description: The spotify trackID. NOT to be confused with the _id field!
+            artist:
+              type: string
+            preview:
+              type: string
+            url_link:
+              type: string
+      example:
+        name: "My Cool Plalist"
+        user: 61ad1488911037d4d2004d26
+        friend: 61ad148e911037d4d2004d29
+        songs: ["Song1", "Song2", "Song3","Song4", "Song5", "Song6","Song7", "Song8", "Song9", "song10"]
+        tracks: [
+          {
+            _id: 61ad148890007d4d2004d27,
+            name: Song1,
+            id: 61ad1488911037d4d2005c34,
+            artist: Artist1,
+            preview: www.link.com,
+            url_link: www.link2.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d28,
+            name: Song2,
+            id: 61ad1488911037d4d2005c35,
+            artist: Artist2,
+            preview: www.link3.com,
+            url_link: www.link4.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d29,
+            name: Song3,
+            id: 61ad1488911037d4d2005c36,
+            artist: Artist3,
+            preview: www.link5.com,
+            url_link: www.link6.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d30,
+            name: Song4,
+            id: 61ad1488911037d4d2005c37,
+            artist: Artist4,
+            preview: www.link7.com,
+            url_link: www.link8.com,
+          },
+          {
+            _id: 61ad148890007d4d200431,
+            name: Song5,
+            id: 61ad1488911037d4d2005c38,
+            artist: Artist,
+            preview: www.link9.com,
+            url_link: www.link10.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d32,
+            name: Song6,
+            id: 61ad1488911037d4d2005c39,
+            artist: Artist6,
+            preview: www.link11.com,
+            url_link: www.link12.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d33,
+            name: Song7,
+            id: 61ad1488911037d4d2005c40,
+            artist: Artist7,
+            preview: www.link13.com,
+            url_link: www.link14.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d34,
+            name: Song8,
+            id: 61ad1488911037d4d2005c41,
+            artist: Artist8,
+            preview: www.link15.com,
+            url_link: www.link16.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d35,
+            name: Song9,
+            id: 61ad1488911037d4d2005c42,
+            artist: Artist9,
+            preview: www.link17.com,
+            url_link: www.link18.com,
+          },
+          {
+            _id: 61ad148890007d4d2004d36,
+            name: Song10,
+            id: 61ad1488911037d4d2005c42,
+            artist: Artist10,
+            preview: www.link19.com,
+            url_link: www.link20.com,
+          }
+        ]
+      
+paths:
+  /fetch/artistv2/:
+    get:
+      summary: Searchs for an artist and returns the artist with the exact matching name
+      tags:
+        - fetchV2
+      parameters:
+        - in: query
+          name: artist
+          required: true
+          schema:
+              type: string
+          description: Search for artist by exact name
+          example: Drake
+      responses:
+        '200':
+          description: artist found
+          content:
+            'application/json':
+                schema:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    image:
+                      type: string
+        '500':
+          description: artist not found
+        '401':
+          description: Bad or expired token
+        '403':
+          description: Bad OAuth request
+        '429':
+          description: The app has exceeded its rate limits
+
+  /fetch/artistsv2/:
+    get:
+      summary: Searchs for an artist and returns the artists with matching names
+      tags:
+        - fetchV2
+      parameters:
+        - in: query
+          name: artist
+          required: true
+          schema:
+              type: string
+          description: Search artist's name
+          example: Cardi B
+      responses:
+          '200':
+            description: artist found
+            content:
+              'application/json':
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      id:
+                        type: string
+                      image:
+                        type: string
+          '500':
+            description: artist not found
+          '401':
+            description: Bad or expired token
+          '403':
+            description: Bad OAuth request
+          '429':
+            description: The app has exceeded its rate limits
+
+  /fetch/trackv2/:
+    get:
+      summary: Searches for a track by name and returns the tracks with matching names.
+      tags:
+        - fetchV2
+      parameters:
+        - in: query
+          name: track
+          required: true
+          schema:
+              type: string
+          description: Searches track name
+          example: Under My Umbrella
+      responses:
+        '200':
+          description: artist found
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string
+        '500':
+          description: song not found
+        '401':
+          description: Bad or expired token
+        '403':
+          description: Bad OAuth request
+        '429':
+          description: The app has exceeded its rate limits
+  
+  /fetch/recsv2/:
+    get:
+      summary: Gets playlist reccomendations based on seeds.
+      tags:
+        - fetchV2
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: object
+            properties:
+              seed_artists:
+                type: array
+                items:
+                  type: string
+              seed_genres:
+                type: array
+                items:
+                  type: string
+              seed_tracks:
+                  type: array
+                  items:
+                    type: string
+          description: Gets recommendations based on seeds. It only accepts 5 seeds in total. seed_artists takes in artistIDs and seed_tracks takes in trackIDs
+          example:
+            seed_artist: [4kYSro6naA4h99UJvo89HB, 3TVXtAsR1Inumwj472S9r4]
+            seed_genres: [hip-hop, r-n-b]
+            seed_tracks: [3A2yGHWIzmGEIolwonU69h]
+      responses:
+        '200':
+          description: Returns an array of tracks
+          content:
+            'application/json':
+              schema:                 
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string  
+        '500':
+            description: Error getting recommendations
+        '401':
+            description: Bad or expired token
+        '403':
+            description: Bad OAuth request
+        '429':
+            description: The app has exceeded its rate limits
+
+  /fetch/recspipev2/:
+    get:
+      summary: GET RECCOMENDATIONS FROM STRINGS => Gets playlist reccomendations based on seeds. NO trackIDs or artistIDS required.
+      tags:
+        - fetchV2
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: object
+            properties:
+              artists:
+                type: array
+                items:
+                  type: string
+              genres:
+                type: array
+                items:
+                  type: string
+              tracks:
+                  type: array
+                  items:
+                    type: string
+          description: Gets recommendations based on seeds. It only accepts 5 values in total.
+          example:
+            artists: ["Rihanna", "Beyonce"]
+            genres: ["hip-hop"]
+            tracks: ["Formation", "Jumpin"]
+      responses:
+        '200':
+          description: Returns an array of tracks
+          content:
+            'application/json':
+              schema:                 
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string  
+        '500':
+            description: Error getting recommendations
+        '401':
+            description: Bad or expired token
+        '403':
+            description: Bad OAuth request
+        '429':
+            description: The app has exceeded its rate limits
+
+  /users/register:
+    post:
+      summary: REGISTER NEW USERS
+      tags:
+        - user
+      requestBody:
+        description: New user's information
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                password2:
+                  type: string
+      responses:
+        '200': 
+          description: User successfully saved. Verification email sent.
+        '500':
+          description: Error searching database.
+        '400':
+          description: Email is already taken.
+        '401':
+          description: Invalid email.
+        '402':
+          description: Password must be between 6 and 30 characters.
+        '403':
+          description: Passwords must match.
+        '405':
+          description: Please provide an email, name, and password.
+        '501':
+          description: Error saving to database.
+        '502':
+          description: User saved. Email could not be sent.
+
+  /users/login:
+    post:
+      summary: USER LOGIN
+      tags:
+        - user
+      requestBody:
+        description: User's login information
+        required: true
+        content:
+          application/x-www-form-urlencoded::
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200': 
+          description: Successfully logged in.
+        '400':
+          description: Please provide an email and password.
+        '401':
+          description: Invalid credentials.
+        '402':
+          description: Please verify your email before logging in.
+  
+  /users/forgot:
+    post:
+      summary: FORGOT PASSWORD => Sends email to change password if password is forgotten.
+      tags:
+        - user 
+      requestBody:
+        description: User's email.
+        content:
+            application/x-www-form-urlencoded::
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+      responses:
+        '200': 
+          description: Email successfully sent.
+        '400':
+          description: Email could not be sent.
+        '500': 
+          description: Error sending email.
+        '501':
+          description: An Error Occured.
+
+  /users/update:
+    put:
+      summary: UPDATE USER PROFILE => Updates most fields of the user schema. All fields are optional.
+        Only pass fields you want to change.
+      tags:
+        - user 
+      requestBody:
+        description: User's account information
+        content:
+            application/x-www-form-urlencoded::
+              schema:
+                type: object
+                properties:
+                  display_name:
+                    type: string
+                    description: Updates display_name.
+                  email:
+                    type: string
+                    description: Updates email.
+                  password:
+                    type: string
+                    description: Updates password.
+                  password2:
+                    type: string
+                    description: Required if password field is passed.
+                  image:
+                    type: string
+                    description: Updates profile image.
+                  fav_genres:
+                    type: array
+                    items:
+                      type: string
+                    description: Updates favorite genres. (Replaces previous array. Send empty array to delete all)
+                  fav_artists:
+                    type: array
+                    items:
+                      type: string
+                    description: Updates favorite artists. (Replaces previous array. Send empty array to delete all)
+                  fav_tracks:
+                    type: array
+                    items:
+                      type: string
+                    description: Updates favorite tracks. (Replaces previous array. Send empty array to delete all)
+      responses:
+        '200': 
+            description: Successfully updated user's information..
+        '400':
+          description: Email is already taken.
+        '401':
+          description: Invalid email.
+        '502':
+          description: Error updating user's information.
+
+  /users/reset/{resetToken}:
+    put:
+      summary: RESET FORGOTTON PASSWORD => Resets user's forgotten password.
+      tags:
+        - user 
+      parameters:
+        - in: path
+          name: resetToken    
+          required: true
+          schema:
+            type: string
+          description: User's reset-password-token is taken in from the url and
+            compared against the encrypted token saved in the user's schema.
+      requestBody:
+        description: User's new password and the confirmation password.
+        content:
+            application/x-www-form-urlencoded::
+              schema: 
+                type: object
+                properties:
+                  password: 
+                    type: string
+                  password2: 
+                    type: string
+      responses:
+        '200': 
+          description: Password Successfully Updated.
+        '400':
+          description: Invalid Token.
+        '500': 
+          description: Unable to update password.
+
+  /users/verify/{verifyToken}:
+    put:
+      summary: VERIFY EMAIL => Verifies user's email.
+      tags:
+        - user 
+      parameters:
+        - in: path
+          name: verifyToken    
+          required: true
+          schema:
+            type: string
+          description: User's email verification token is taken in from the url and
+            compared against the encrypted token saved in the user's schema.
+      responses:
+        '200': 
+          description: User's Email Successfully Verified.
+        '400':
+          description: Invalid Token.
+        '500': 
+          description: Unable to verify user's email.
+  
+  /users/logout:
+    get:
+      summary: USER LOG OUT => Logs out user by removing access cookie.
+      tags:
+        - user
+      responses:
+        '200':
+          description: Sucessfully logged out.
+
+  /users/add:
+    post:
+      summary: ADD FRIEND => Adds friend by email to user's friend list.
+      tags:
+        - friend
+      requestBody:
+        description: Friends's email
+        required: true
+        content:
+          application/x-www-form-urlencoded::
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200': 
+          description: Successfully  added friend.
+        '500':
+          description: Error finding friend.
+        '404':
+          description: User not found.
+        '501':
+          description: Error adding friend.
+        '401':
+          description: User is already your friend
+  
+  /users/friends:
+    get:
+      summary: GET ALL FRIENDS => Populatess all of user's friends.
+      tags:
+        - friend
+      responses:
+        '200': 
+          description: Returns an array of all user's friend's, sorted alphabetically by display_name.
+          content:
+            'application/json':
+              schema:                 
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    display_name:
+                      type: string
+                    email:
+                      type: string
+                    image:
+                      type: string
+                    fav_genres:
+                      type: string
+                    fav_artists:
+                      type: string 
+                    fav_tracks:
+                      type: string
+                    friends:
+                      type: array
+                      items: 
+                        type: string
+                        description: the objectID's of other users
+                    playlists:
+                      type: array
+                      items: 
+                        type: string
+                        description: the objectID's Playlists.
+        '500':
+          description: Error fetching friends.
+
+  /users/friend/{email}:
+    delete:
+      summary: DELETE FRIEND => Deletes friend by getting friend's email through the url.
+      tags:
+        - friend 
+      parameters:
+        - in: path
+          name: email    
+          required: true
+          schema:
+            type: string
+          description: Friend's email.
+      responses:
+        '200': 
+          description: Friend successfully deleted.
+        '501':
+          description: Could not find user with given email.
+        '500':
+          description: Error deleting friend.
+
+  /users/addplaylist:
+    post:
+      summary: (Old Method)Adds a new playlist of only song names to user's playlist list.
+      tags:
+        - playlist
+      requestBody:
+        description: Playlist's information
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                songs:
+                  type: array
+                  items:
+                    type: string
+                user:
+                    $ref: '#/components/schemas/User'
+      responses:
+        '200': 
+          description: Successfully created paylist.
+        '500':
+          description: Error adding playlist.
+        '501':
+          description: Error saving playlist.
+
+  /users/addplaylistv2:
+    post:
+      summary: (NEW Method) ADD PLAYLISY => Adds a new playlist of tracks with their spotify information to user's playlist list
+                Takes in the same track data that is outputted buy the get-recommendations endpoint.
+      tags:
+        - playlist
+      requestBody:
+        description: Playlist's information
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                friend: 
+                  type: string
+                  description: Optional field. The objectID of the friend with whom the user created the playlist.
+                tracks:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      description: The objectID of the track. NOT to be confused with the id field!
+                    name:
+                      type: string
+                    id:
+                      type: string
+                      description: The spotify trackID. NOT to be confused with the _id field!
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string
+      responses:
+        '200': 
+          description: Successfully created paylist.
+        '500':
+          description: Error adding playlist.
+        '502':
+          description: Error saving playlist.
+
+  /users/playlists:
+    get:
+      summary: GET USER'S PLAYLISTS => Populatess all of user's playlists.
+      tags:
+        - playlist
+      responses:
+        '200': 
+          description: Returns an array of all user's playlists.
+          content:
+            'application/json':
+              schema:                 
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    user:
+                      type: string
+                      description: User's objectID.
+                    friend:
+                      type: string
+                      description: The objectID of the friend with whom the user created the playlist.
+                    songs:
+                      type: array
+                      items:
+                        type: string
+                    tracks:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: The objectID of the track. NOT to be confused with the id field!
+                        name:
+                          type: string
+                        id:
+                          type: string
+                          description: The spotify trackID. NOT to be confused with the _id field!
+                        artist:
+                          type: string
+                        preview:
+                          type: string
+                        url_link:
+                          type: string
+        '500':
+          description: Error fetching playlists.
+
+  /users/playlist/{id}:
+    delete:
+      summary: DELETE PLAYLIST => Deletes a playlist by pulling the playlist's objectID through the url.
+      tags:
+        - playlist 
+      parameters:
+        - in: path
+          name: id    
+          required: true
+          schema:
+            type: string
+          description: Playlist objectID.
+      responses:
+        '200': 
+          description: Successfully Deleted Playlist.
+        '500':
+          description: Error deleting playlist.
+
+    get:
+      summary: GET FULL PLAYLIST =>
+        Gets full playlist (plus songs).
+      tags:
+        - playlist
+      parameters:
+        - in: path
+          name: id    
+          required: true
+          schema:
+            type: string
+          description: Playlist's objectID.
+      responses:
+        '200': 
+          description: Returns an array of all the playlist's songs.
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  type: string
+                 
+        '500':
+          description: Error has occured.
+
+    put:
+      summary: UPDATE PLAYLIST => 
+        Updates a playlist by pulling the playlist's objectID through the url.
+      tags:
+        - playlist 
+      parameters:
+        - in: path
+          name: id    
+          required: true
+          schema:
+            type: string
+          description: Playlist's objectID.
+      requestBody:
+        description: Playlist information
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+      responses:
+        '200': 
+            description: Successfully Updated Playlist.
+        '500':
+          description: Error updated playlist.
+       
+  /users/addtrack:
+    put:
+      summary: (NEW) ADD NEW TRACK TO PLAYLIST =>
+        Adds new track/s to an existing playlist.
+      tags:
+        - playlist
+      requestBody:
+        description: Playlist's information
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playlist_id:
+                  type: string
+                tracks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: The objectID of the track. NOT to be confused with the id field!
+                      name:
+                        type: string
+                      id:
+                        type: string
+                        description: The spotify trackID. NOT to be confused with the _id field!
+                      artist:
+                        type: string
+                      preview:
+                        type: string
+                      url_link:
+                        type: string
+      responses:
+        '200': 
+          description: Sucessfully Added Song/s. || Playlist sucessfully updated. Some songs were duplicates and not added.
+        '400':
+          description: Could not locate playlist.
+        '500':
+          description: Error saving playlist.
+        '501':
+          description: Error adding song/s.       
+
+  /users/deltrack/{playlist_id}/{track_id}:
+    delete:
+      summary: (NEW) DELETE SINGLE PLAYLIST TRACK =>
+        Deletes a single track from a playlist by taking in objectIDs through the url.
+      tags:
+        - playlist
+      parameters:
+        - in: path
+          name: playlist_id
+          required: true
+          schema:
+            type: string
+          description: Playlist objectID.
+        - in: path
+          name: track_id
+          required: true
+          schema:
+            type: string
+          description: Track objectID.
+      responses:
+        '200': 
+          description: Sucessfully Deleted Track.
+        '400':
+          description: Could not locate playlist.
+        '401':
+          description: Could not locate track.
+        '500':
+          description: Error saving playlist.
+        '501':
+          description: Error deleting song.
+
+  /fetch/artist:
+    get:
+      summary: SEARCH ARTIST => Searchs for an artist and returns the artist with the exact matching name
+      tags:
+        - fetch
+      requestBody:
+        description: Search for artist by exact name.
+        required: true
+        content:
+          application/x-www-form-urlencoded::
+            schema:
+              type: object
+              properties:
+                artist:
+                  type: string
+              example: 
+                artist: Drake
+                description: Artist's name.
+      responses:
+        '200':
+          description: artist found
+          content:
+            'application/json':
+                schema:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    image:
+                      type: string
+        '500':
+          description: artist not found
+        '401':
+          description: Bad or expired token
+        '403':
+          description: Bad OAuth request
+        '429':
+          description: The app has exceeded its rate limits
+
+  /fetch/artists:
+    get:
+      summary: SEARCH ARTISTS => Searchs for an artist and returns the artists with matching names
+      tags:
+        - fetch
+      requestBody:
+        description: Search artist's name. 
+        required: true
+        content:
+          application/x-www-form-urlencoded::
+            schema:
+              type: object
+              properties:
+                artist:
+                  type: string
+              example: 
+                artist: Cardi B
+                description: Artist's name.
+      responses:
+          '200':
+            description: artist found
+            content:
+              'application/json':
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      id:
+                        type: string
+                      image:
+                        type: string
+          '500':
+            description: artist not found
+          '401':
+            description: Bad or expired token
+          '403':
+            description: Bad OAuth request
+          '429':
+            description: The app has exceeded its rate limits
+
+  /fetch/track:
+    get:
+      summary: SEARCH TRACK => Searches for a track by name and returns the tracks with matching names.
+      tags:
+        - fetch
+      requestBody:
+        description: Searches track name. 
+        required: true
+        content:
+          application/x-www-form-urlencoded::
+            schema:
+              type: object
+              properties:
+                track:
+                  type: string
+              example: 
+                track: Under My Umbrella
+                description: Track name.
+      responses:
+        '200':
+          description: artist found
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string
+        '500':
+          description: song not found
+        '401':
+          description: Bad or expired token
+        '403':
+          description: Bad OAuth request
+        '429':
+          description: The app has exceeded its rate limits
+  
+  /fetch/genres:
+    get:
+      summary: GET GENRES => Get Spotify's available genres
+      tags:
+        - fetch
+      responses:
+        '200':
+          description: Returns an array of Spotify's available genres
+          content:
+            'application/json':
+                schema:                 
+                  type: array
+                  items:
+                    type: string  
+        '500':
+          description: Error connecting to Spotify
+        '401':
+          description: Bad or expired token
+        '403':
+          description: Bad OAuth request
+        '429':
+          description: The app has exceeded its rate limits
+  
+  /fetch/recs:
+    get:
+      summary: GET RECCOMENDATIONS => Gets playlist reccomendations based on seeds.
+      tags:
+        - fetch
+      requestBody:
+        description: Searches track name. 
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                seed_artists:
+                  type: array
+                  items:
+                    type: string
+                seed_genres:
+                  type: array
+                  items:
+                    type: string
+                seed_tracks:
+                    type: array
+                    items:
+                      type: string
+              description: Gets recommendations based on seeds. It only accepts 5 seeds in total. seed_artists takes in artistIDs and seed_tracks takes in trackIDs
+              example:
+                seed_artist: [4kYSro6naA4h99UJvo89HB, 3TVXtAsR1Inumwj472S9r4]
+                seed_genres: [hip-hop, r-n-b]
+                seed_tracks: [3A2yGHWIzmGEIolwonU69h]
+      responses:
+        '200':
+          description: Returns an array of tracks
+          content:
+            'application/json':
+              schema:                 
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string  
+        '500':
+            description: Error getting recommendations
+        '401':
+            description: Bad or expired token
+        '403':
+            description: Bad OAuth request
+        '429':
+            description: The app has exceeded its rate limits
+
+  /fetch/recspipe:
+    get:
+      summary: GET RECCOMENDATIONS FROM STRINGS => Gets playlist reccomendations based on seeds. NO trackIDs or artistIDS required.
+      tags:
+        - fetch
+      requestBody:
+        description: Names of Artists, Tracks, and Genres. 
+        required: true
+        content:
+          application/x-www-form-urlencoded::
+            schema:
+              type: object
+              properties:
+                artists:
+                  type: array
+                  items:
+                    type: string
+                genres:
+                  type: array
+                  items:
+                    type: string
+                tracks:
+                    type: array
+                    items:
+                      type: string
+              description: Gets recommendations based on seeds. It only accepts 5 values in total.
+              example:
+                artists: ["Rihanna", "Beyonce" ]
+                genres: [hip hop]
+                tracks: ["Formation", "Jumpin"]
+      responses:
+        '200':
+          description: Returns an array of tracks
+          content:
+            'application/json':
+              schema:                 
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    id:
+                      type: string
+                    artist:
+                      type: string
+                    preview:
+                      type: string
+                    url_link:
+                      type: string  
+        '500':
+            description: Error getting recommendations
+        '401':
+            description: Bad or expired token
+        '403':
+            description: Bad OAuth request
+        '429':
+            description: The app has exceeded its rate limits

@@ -247,7 +247,7 @@ spotifyRouter.get("/recspipe", async(req, res) => {
 
 // Search artists by name/get ArtistID
 //This returns the artist with the exact matching name (name, id, image link)
-spotifyRouter.get("/artist2", (req, res) => {
+spotifyRouter.get("/artistv2/", (req, res) => {
     spotifyApi.searchArtists(req.query.artist).then((data) => {
         var match = {};
         data.body.artists.items.every((artist, i) => {
@@ -274,7 +274,7 @@ spotifyRouter.get("/artist2", (req, res) => {
 
 // Search artists by name
 //This returns an array of matching artists (name, id, image link)
-spotifyRouter.get("/artists2", (req, res) => {
+spotifyRouter.get("/artistsv2/", (req, res) => {
     spotifyApi.searchArtists(req.query.artist).then((data) => {
         var artists = [];
         if(!data.body.artists.items[0]){
@@ -298,7 +298,7 @@ spotifyRouter.get("/artists2", (req, res) => {
 
 // Search tracks by name/get TrackID
 //This returns an array of matching tracks (name, id, artist, song preview link, song link)
-spotifyRouter.get("/track2", (req, res) => {
+spotifyRouter.get("/trackv2/", (req, res) => {
     spotifyApi.searchTracks(req.query.track,{limit: 10}).then((data) => {
         var tracks = [];
         if(!data.body.tracks.items[0]){
@@ -324,7 +324,7 @@ spotifyRouter.get("/track2", (req, res) => {
 
 //Get Recommendations Based on Seeds
 //This returns an array of 10 songs (name, id, artist, song preview link, song link)
-spotifyRouter.get("/recs2", (req, res) => {
+spotifyRouter.get("/recsv2/", (req, res) => {
     var tracks =[];
     var seeds = {
         ...req.query,
@@ -354,6 +354,83 @@ spotifyRouter.get("/recs2", (req, res) => {
     }).catch((err) => console.log('Error fetching reccomendations!', err)); 
 });
 
+spotifyRouter.get("/recspipev2/", async(req, res) => {
+    var track_ids = [];
+    var artist_ids = [];
+    var allgenres = [];
+
+    //If strings, converts queries to an array
+    if(typeof req.query.tracks === 'string') {
+        req.query.tracks = [req.query.tracks];
+    }
+    if(typeof req.query.artists === 'string') {
+        req.query.artists = [req.query.artists];
+    }
+    if(typeof req.query.genres === 'string') {
+        req.query.genres = [req.query.genres];
+    }
+
+    try{
+        if(req.query.tracks){
+            await Promise.all(
+                req.query.tracks.map(async(track) =>{
+                    var data = await spotifyApi.searchTracks(track,{limit: 1});
+                    var id = await data.body.tracks.items[0].id
+                    track_ids.push(id);
+                })
+            )
+        }
+
+        if(req.query.artists){
+            await Promise.all(
+                req.query.artists.map(async(artist) =>{
+                    var data2 = await spotifyApi.searchArtists(artist,{limit: 1})
+                    var id = await data2.body.artists.items[0].id
+                    artist_ids.push(id);
+                })
+            )
+        }
+
+        if(req.query.genres){
+            var data3 = await spotifyApi.getAvailableGenreSeeds();
+            await Promise.all(
+                req.query.genres.map(async(genre) =>{
+                    var match = await stringSimilarity.findBestMatch(genre, data3.body.genres);
+                    console.log("Best Match: " + match.bestMatch.target);
+                    allgenres.push(match.bestMatch.target)
+                })
+            )
+        };
+
+        var results =[];
+        var seeds = {
+            seed_artists: artist_ids,
+            seed_genres: allgenres,
+            seed_tracks: track_ids,
+            limit: 10, 
+            market: "US"
+        }
+
+        spotifyApi.getRecommendations(seeds).then((data) => {
+            data.body.tracks.forEach((track, i) => {
+                results.push({
+                    "name": track.name,
+                    "id": track.id,
+                    "artist": track.artists[0]?.name,
+                    "preview": track.preview_url,
+                    "url_link": track.external_urls.spotify
+                });
+            });
+            console.log("Recommendations found");
+            return res.status(200).json(results);
+        })
+
+    }catch(err){
+        if(err){    
+            return res.json({message : {msgBody : "Error compiling recommendation seeds.", msgError : err}});
+        }
+    };
+});
 
 module.exports = spotifyRouter;
 

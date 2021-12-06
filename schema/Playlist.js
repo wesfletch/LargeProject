@@ -1,9 +1,9 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const Playlist = mongoose.Schema({
     name : {type : String, required : true},
     user: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
-    friend: [{type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true}],
+    friend: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
     songs : [{type: String, _id: false}],
     tracks: [{
         name : {type : String},
@@ -14,4 +14,4 @@ const Playlist = mongoose.Schema({
     }],
 })
 
-module.exports = mongoose.model('Playlist', Playlist)
+module.exports = mongoose.model('Playlist',Playlist);

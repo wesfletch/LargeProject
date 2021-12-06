@@ -64,7 +64,7 @@ router.post('/register',(req,res)=>{
             });
             newUser.save(async (err)=>{
                 if(err){
-                    return res.status(500).json({message : {msgBody : "Error saving to database.", msgError: err}});
+                    return res.status(501).json({message : {msgBody : "Error saving to database.", msgError: err}});
                 };
             });
   
@@ -88,10 +88,10 @@ router.post('/register',(req,res)=>{
                 });
                 console.log(newUser);
 
-                return res.status(200).json({message : {msgBody : "User successfully saved. Email Sent.", msgError: false}});
+                return res.status(200).json({message : {msgBody : "User successfully saved. Verification email sent.", msgError: false}});
             }catch(err){
                 console.log(err);
-                return res.status(501).json({message : {msgBody : "Error: User saved. Email could not be sent.", msgError: err}});
+                return res.status(502).json({message : {msgBody : "Error: User saved. Email could not be sent.", msgError: err}});
             }
         }
     });
@@ -112,7 +112,7 @@ router.post('/login',async (req,res)=>{
 
         //Checks if user's email address is veified
         if(user.verificationToken == false){
-            return res.status(400).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
+            return res.status(402).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
         }
     
         if(!user){
@@ -123,13 +123,14 @@ router.post('/login',async (req,res)=>{
         const isMatch = await user.matchPassword(password);
     
         if(!isMatch){
-            return res.status(402).json({message : {msgBody : "Error: Wrong credentials.", msgError: true}});
+            return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
         }
 
         const token = signToken(user._id);
         res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
         res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: false}});
     
+  
 });
 
 //Logout endpoint, clears auth cookie
@@ -139,7 +140,7 @@ router.get('/logout', authorized ,(user,res)=>{
 });
 
 //Edit User Profile
-router.put('/update/', authorized,async(req,res)=>{
+router.put('/update', authorized,async(req,res)=>{
 
     //Updates the user's display name
     if(req.body.display_name){
@@ -346,7 +347,7 @@ router.put('/verify', async(req, res) => {
         console.log("Old Token is:");
         //console.log(user.resetPasswordToken);
         user.save();
-      
+      /*
         //Creates verify url to email to provided email
         const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
   
@@ -370,6 +371,7 @@ router.put('/verify', async(req, res) => {
             return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
         }
 
+        */
         return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
     }catch(err){
         return res.status(501).json({message : {msgBody : "Error: Stetting verification.", msgError: err}});
@@ -382,6 +384,7 @@ router.put('/verify', async(req, res) => {
 
 //Add friend
 router.post('/add', authorized, async(req,res)=>{
+    req.body.email = req.body.email.toLowerCase()
     User.findOne({email: req.body.email}, function(err,doc) { 
         if(err){
             return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: err}});
@@ -417,18 +420,63 @@ router.get('/friends', authorized,async(req,res)=>{
     });
 });
 
-//Delete Friend
-router.delete('/friend/:id', authorized,(req,res)=>{
-    User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: req.params.id}})
-    .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: false}}))
-    .catch(err => res.status(500).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
+
+//Delete Friend -Gets friend's email through a json request
+
+router.delete('/delfriend', authorized,async(req,res)=>{
+    req.body.email = req.body.email.toLowerCase()
+    User.findOne({email: req.body.email}, function(err,doc) { 
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: err}});
+        }
+        if(!doc){ //Checks if email is in database
+            return res.status(404).json({message : {msgBody : "Error: User not found.", msgError: true}});
+        }
+        if(doc){ //Checks if friend exists in user's friend's list
+            if(req.user.friends.indexOf(doc.id.toString()) === -1) {
+                //Friend does not exist in user's friend list.
+                return res.status(401).json({message : {msgBody : "Error: User is not your friend.", msgError: true}});
+            }
+            else{
+                //Else friend does exist in user's friend's list
+                User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: doc.id}})
+                .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: false}}))
+                .catch(err => res.status(501).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
+            }
+        }
+    });
+});
+
+//Delete Friend 
+//Gets email through url path
+router.delete('/friend/:email', authorized, (req,res) =>{
+    User.findOne({email: req.params.email}, function(err,doc) { 
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: err}});
+        }
+        if(!doc){ //Checks if email is in database
+            return res.status(404).json({message : {msgBody : "Error: User not found.", msgError: true}});
+        }
+        if(doc){ //Checks if friend exists in user's friend's list
+            if(req.user.friends.indexOf(doc.id.toString()) === -1) {
+                //Friend does not exist in user's friend list.
+                return res.status(401).json({message : {msgBody : "Error: User is not your friend.", msgError: true}});
+            }
+            else{
+                //Else friend does exist in user's friend's list
+                User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: doc.id}})
+                .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: false}}))
+                .catch(err => res.status(501).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
+            }
+        }
+    });
 });
 
 /*---------------------------------------------------*/
 //                   Playlistd APIs
 /*---------------------------------------------------*/
 
-//Add Playlist
+//OLD Add Playlist
 router.post('/addplaylist', authorized, async(req,res) =>{
     const playlist = new Playlist({
         name : req.body.name,
@@ -478,7 +526,19 @@ router.put('/playlist/:id', authorized,(req,res)=>{
     .catch(err => res.status(500).json({message : {msgBody : "Error updated playlist.", msgError: err}}));
 });
 
-//------------------------New Playlist APIs-----------------------------//
+// Get full playlist (plus songs)
+router.get('/playlist/:id', authorized, (req,res) => {
+    Playlist.findById({_id : req.params.id})
+            .populate('songs')
+            .exec((err, playlist) =>{
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error has occured", msgError: err}});
+        }else{
+            return res.status(200).json({playlist : playlist, authenticated: true});
+        }
+    });
+});
+//-------------------------New Playlist APIs-----------------------------//
 
 //Add PlaylistV2
 router.post('/addplaylistv2', authorized, async (req,res)=>{
@@ -503,10 +563,10 @@ router.post('/addplaylistv2', authorized, async (req,res)=>{
 });
 
 //Delete a track from a playlist
-router.delete('/deltrack', authorized,async(req,res)=>{
+router.delete('/deltrack/:playlist_id/:track_id', authorized,async(req,res)=>{
 
-    const _id = req.body.playlist_id;
-    const t_id = req.body.track_id;
+    const _id = req.params.playlist_id;
+    const t_id = req.params.track_id;
     console.log(_id);
 
     try{
@@ -516,7 +576,7 @@ router.delete('/deltrack', authorized,async(req,res)=>{
             return res.status(400).json({message : {msgBody : "Error: Could not locate playlist.", msgError: true}});
         }
         if(!playlist.tracks.id(t_id)){
-            return res.status(400).json({message : {msgBody : "Error: Could not locate track to delete.", msgError: true}});
+            return res.status(401).json({message : {msgBody : "Error: Could not locate track to delete.", msgError: true}});
         }
 
         playlist.tracks.pull({_id: t_id})
