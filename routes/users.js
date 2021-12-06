@@ -3,14 +3,14 @@ const router = express.Router();
 const passport = require('passport');
 const passportConfig = require('../passport');
 const JWT = require('jsonwebtoken');
-const User = require('../models/User');
-const Playlist = require('../models/Playlist');
-const Track = require('../models/Playlist');
+const User = require('../schema/User');
+const Playlist = require('../schema/Playlist');
 const Validator = require("validator");
 const sendEmail = require("../sendEmail");
 const { request } = require('express');
 const mongoose = require('mongoose');
 const crypto = require("crypto");
+const bcrypt = require('bcrypt');
 const _ = require('underscore');
 const authorized = passport.authenticate('jwt',{session : false})
 require("dotenv").config({path:'../.env'});
