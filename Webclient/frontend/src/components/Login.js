@@ -26,7 +26,7 @@ function Login()
         var js = JSON.stringify(obj);
         try
         {
-            const response = await fetch(getPath(), {method:'POST',credentials: 'include', body:js,headers:{'Content-Type':'application/json', 'Access-Control-Allow-Origin':'https://poosd-f2021-11.herokuapp.com'}});
+            const response = await fetch(getPath(), {method:'POST',credentials: 'include', body:js,headers:{'Content-Type':'application/json'}});
             var res = JSON.parse(await response.text());
             if (res.isAuthenticated)
             {
