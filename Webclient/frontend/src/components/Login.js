@@ -44,6 +44,46 @@ function Login()
     };
 
     return (
+        <body class="bodies">
+            <input type="hidden" id="anPageName" name="page" value="login" />
+            <div class="container-center-horizontal">
+            <div class="login screen">
+                <div class="overlap-group">
+                <div class="background"></div>
+                <div class="button">
+                    <div class="create-new-playlist">
+                        <Button variant='signInBtn' size="big" onClick={doLogin}>
+                            Sign In
+                        </Button>
+                    </div>
+                </div>
+                <div class="continue-as-guest">Continue As Guest</div>
+                <div class="dont-have-an-account">Don’t have an account?</div>
+                <div class="rectangle-58">
+                    <Form>
+                        <Form.Group class="formElement">
+                            <Form.Control type="password" placeholder="Enter password here" ref={(c) => password = c}/>
+                        </Form.Group>
+                    </Form>
+                </div>
+                <div class="password">Password</div>
+                <div class="rectangle-57">
+                    <Form>
+                        <Form.Group class="formElement">
+                            <Form.Control type="email" placeholder="123@gmail.com" ref={(c) => email = c}/>
+                        </Form.Group>
+                    </Form>
+                </div>
+                <div class="e-mail">Email</div>
+                <div class="log-in">Log in</div>
+                <h1 class="title">Welcome To shareTunes</h1>
+                </div>
+            </div>
+            </div>
+        </body>
+    );
+
+    /*return (
         <div class="row">
             <div class="col-lg-3 col-md-2 col-sm-1"></div>
             <div class="col-lg-6 col-md-8 col-sm-10">
@@ -83,7 +123,7 @@ function Login()
             </div>
             <div class="col-lg-3 col-md-2 col-sm-1"></div>
         </div>
-    );
+    );*/
 };
 
 export default Login;
