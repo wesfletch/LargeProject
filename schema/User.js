@@ -1,35 +1,35 @@
 const mongoose = require('mongoose');
 const crypto = require("crypto");
 const bcrypt = require('bcrypt');
-const jwt = require("jsonwebtoken");
-
+require("dotenv").config({path:'../.env'});
 
 const reqString = {
     type: String, 
     required: true
 }
 
-const User = mongoose.Schema({
-    display_name: String,
-    email: String,
+const User = new mongoose.Schema({
+    display_name: {type: String, trim: true},
+    email: {type: String, lowercase: true, trim: true},
     password: String,
-    fav_genres : {type : [String]},
-    fav_artists : {type : [String]},
-    fav_tracks : {type : [String]},
+    image:{type: String, trim: true},
+    date: {type: Date, default: Date.now},
+    fav_genres : [{type: String, _id: false}],
+    fav_artists :[{type: String, _id: false}],
+    fav_tracks : [{type: String, _id: false}],
     friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'User'}],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
     resetPasswordToken: String,
-    resetPasswordExpire: Date
-})
+    resetPasswordExpire: Date,
+    verificationToken: {type: Boolean, default: false}
+});
 User.index({display_name: 'text', email: 'text'});
 
-// for password encryption
-User.pre('save', function(next)
-{
+//Encrypts the user's password before saving
+User.pre('save',function(next){
     if(!this.isModified('password'))
         return next();
-    bcrypt.hash(this.password,10,(err,passwordHash) => 
-    {
+    bcrypt.hash(this.password,10,(err,passwordHash)=>{
         if(err)
             return next(err);
         this.password = passwordHash;
@@ -37,25 +37,14 @@ User.pre('save', function(next)
     });
 });
 
-User.methods.comparePassword = function(password,cb) 
-{
-    // no need to hash our password beforehand, bcrypt does this for us
-    // just compare plaintext password to (hashed) User password
-    bcrypt.compare(password, this.password, (err,isMatch) => 
-    {
-        if(err)
-            return cb(err);
-        else{
-            if(!isMatch)
-                return cb(null,isMatch);
-            return cb(null,this);
-        }
-    });    
+//Compares user's entered password to their encrypted password
+User.methods.matchPassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
 }
 
-User.methods.getResetPasswordToken = function () 
-{
-    const resetToken = crypto.randomBytes(20).toString("hex");
+//Sets the reset password token.
+User.methods.getResetPasswordToken = function () {
+    const resetToken = crypto.randomBytes(20).toString(process.env.DIGEST);
   
     // Hash token (private key) and save to database
     this.resetPasswordToken = crypto
@@ -65,8 +54,20 @@ User.methods.getResetPasswordToken = function ()
   
     // Set token expire date
     this.resetPasswordExpire = Date.now() + 10 * (60 * 1000); // Ten Minutes
-  
     return resetToken;
 };
 
-module.exports = mongoose.model('User', User)
+//Compares password for authentication
+User.methods.comparePassword = function(password,callback){
+    bcrypt.compare(password,this.password,(err,isMatch)=>{
+        if(err)
+            return callback(err);
+        else{
+            if(!isMatch)
+                return callback(null,isMatch);
+            return callback(null,this);
+        }
+    });
+};
+
+module.exports = mongoose.model('User', User);
