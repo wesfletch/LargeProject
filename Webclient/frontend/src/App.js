@@ -5,6 +5,7 @@ import './App.css';
 import './login.css';
 import './home-page.css';
 import './create-new-playlist.css';
+import './edit-playlist.css';
 import './styleguide.css';
 import './globals.css';
 
