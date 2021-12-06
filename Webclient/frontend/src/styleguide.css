@@ -1,0 +1,13 @@
+:root { 
+  --black: #000000;
+  --white: #ffffff;
+ 
+  --font-size-l: 30px;
+  --font-size-m: 24px;
+  --font-size-xl: 48px;
+  --font-size-xxl: 80px;
+ 
+  --font-family-libre_baskerville: "Libre Baskerville", Helvetica;
+  --font-family-oswald: "Oswald", Helvetica;
+  --font-family-roboto: "Roboto", Helvetica;
+}
