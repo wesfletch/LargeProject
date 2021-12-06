@@ -38,25 +38,50 @@ function Home()
         }
     };
     return (
-        <div class="row">
-            <div class="col-lg-3 col-md-2 col-sm-1"></div>
-            <div class="col-lg-6 col-md-8 col-sm-10">
-                <div class="mainForms">
-                    <PlaylistTable/>
-                    <div class="guest">
-                        <div className="d-grid gap-2">
-                            <Button variant='welcomeBtn' size="bigG" onClick={doCreatePlaylist}>
-                                Create a New Playlist
+        <body class="bodies">
+            <input type="hidden" id="anPageName" name="page" value="home-page" />
+            <div class="container-center-horizontal">
+            <div class="home-page screen">
+                <div class="overlap-group-container">
+                <div class="overlap-group2">
+                    <div class="sidebar"></div>
+                    <div class="menu">
+                    <img class="marker" src="img/marker@2x.svg" />
+                    <div class="flex-col">
+                        <div class="place oswald-normal-lilac-bush-17px">HOME</div>
+                        <div class="create-new-playlist oswald-normal-white-17px">
+                            <Button variant='welcomeBtn' size="biggish" onClick={doCreatePlaylist}>
+                                Create New Playlist
                             </Button>
-                            <Button variant='welcomeBtn' size="bigG" onClick={doLogout}>
+                        </div>
+                        <div class="recommend-songs oswald-normal-white-17px">Recommend Songs</div>
+                        <div class="friends oswald-normal-white-17px">Friends</div>
+                        <div class="profile oswald-normal-white-17px">Profile</div>
+                        <div class="logout oswald-normal-white-17px">
+                            <Button variant='welcomeBtn' size="biggish" onClick={doLogout}>
                                 Logout
                             </Button>
                         </div>
                     </div>
+                    </div>
+                </div>
+                <div class="overlap-group1 border-1px-black-3">
+                    <div class="welcome-display-name oswald-normal-black-40px">Welcome “Display Name”</div>
+                    <div class="rectangle-50"></div>
+                    <div class="your-playlists oswald-normal-black-30px">Your Playlists</div>
+                    <div class="rectangle-55">
+                        <PlaylistTable/>
+                    </div>
+                    <img class="line-1" src="img/line-1@1x.svg" />
+                    <div class="quick-recommend oswald-normal-black-40px">Quick Recommend</div>
+                    <div class="button">
+                    <div class="recommend-songs-1 oswald-normal-black-30px-2">Recommend Songs From Your Favorites</div>
+                    </div>
+                </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-2 col-sm-1"></div>
-        </div>
+            </div>
+        </body>
     );
 };
 

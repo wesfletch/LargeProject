@@ -1,13 +1,99 @@
 :root { 
   --black: #000000;
+  --black-2: #000000e8;
+  --black-3: #000000b2;
+  --cod-gray: #0b0b0d;
+  --licorice: #111111;
+  --lilac-bush: #a175ff;
+  --purple-heart: #6841bc;
   --white: #ffffff;
+  --white-2: #ffffffb2;
  
-  --font-size-l: 30px;
-  --font-size-m: 24px;
-  --font-size-xl: 48px;
+  --font-size-l: 40px;
+  --font-size-m: 30px;
+  --font-size-s: 25px;
+  --font-size-xl: 80px;
   --font-size-xxl: 80px;
+  --font-size-xs: 24px;
+  --font-size-xxs: 20px;
+  --font-size-xxxs: 17px;
+  --font-size-ll: 30px;
+  --font-size-mm: 24px;
+  --font-size-xlxl: 48px;
  
-  --font-family-libre_baskerville: "Libre Baskerville", Helvetica;
+  --font-family-libre_baskerville-bold: "Libre Baskerville-Bold", Helvetica;
   --font-family-oswald: "Oswald", Helvetica;
-  --font-family-roboto: "Roboto", Helvetica;
+  --font-family-roboto-black: "Roboto-Black", Helvetica;
+  --font-family-roboto-light: "Roboto-Light", Helvetica;
+}
+.oswald-normal-white-17px {
+  color: var(--white);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-xxxs);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-black-30px {
+  color: var(--black-2);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-m);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-black-30px-2 {
+  color: var(--black);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-m);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-black-40px {
+  color: var(--black);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-l);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-lilac-bush-17px {
+  color: var(--lilac-bush);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-xxxs);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-white-20px {
+  color: var(--white);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-xxs);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-black-20px {
+  color: var(--black-2);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-xxs);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.oswald-normal-purple-heart-30px {
+  color: var(--purple-heart);
+  font-family: var(--font-family-oswald);
+  font-size: var(--font-size-m);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.border-1px-black-3 {
+  border: 1px solid var(--black-3);
+}
+
+.border-1px-black {
+  border: 1px solid var(--black);
 }
