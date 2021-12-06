@@ -21,7 +21,7 @@
 }
 
 .btn-signInBtn {
-  background-color: rgb(156, 39, 176);
+  background-color: #a175ff;;
   color: rgb(255, 255, 255);
   border: 2px rgb(156, 39, 176);
 }
@@ -32,9 +32,18 @@
   border-color: rgb(156, 39, 176);
 }
 
+.btn-welcomeBtn {
+  margin-bottom: 5%;
+  color: rgb(255, 255, 255);
+  border-radius: 2px; 
+}
+
 .btn-big {
-  padding: 0.3rem 10rem;
   font-size: 1.4rem;
+}
+
+.btn-biggish {
+  font-size: 1rem;
 }
 
 .btn-bigG {
@@ -68,13 +77,39 @@
   margin-bottom: 3%;
 }
 
+.form-control:not(active) {
+  height:79px;
+  border-color: rgb(89, 31, 99);
+  color:white;
+  background-color: black;
+}
+
 .form-control:focus {
   border-color: rgb(89, 31, 99);
   box-shadow: 0 0 0 0.1rem rgb(156, 39, 176);
+  color:white;
+  background-color: black;
 }
 
 .links {
   color: rgb(255, 255, 255);
   text-align: center;
   margin-top: 5%;
+}
+
+a {
+  color: rgb(255, 255, 255);
+}
+
+a:hover {
+  color: rgb(33,36,34);
+}
+
+table {
+  color: rgb(255, 255, 255);
+}
+
+.bodies {
+  margin: 0;
+  background: #ffffff;
 }

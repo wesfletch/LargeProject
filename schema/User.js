@@ -9,9 +9,9 @@ const reqString = {
 }
 
 const User = new mongoose.Schema({
-    display_name: {type: String, required: true, trim: true},
-    email: {type: String, required: true, lowercase: true, trim: true},
-    password: {type: String, required: true},
+    display_name: {type: String, trim: true},
+    email: {type: String, lowercase: true, trim: true},
+    password: String,
     image:{type: String, trim: true},
     date: {type: Date, default: Date.now},
     fav_genres : [{type: String, _id: false}],

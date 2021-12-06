@@ -15,6 +15,7 @@ const _ = require('underscore');
 const authorized = passport.authenticate('jwt',{session : false})
 require("dotenv").config({path:'../.env'});
 
+
 const signToken = userID =>{
     return JWT.sign({
         iss : process.env.JWT_SECRET,
@@ -97,40 +98,38 @@ router.post('/register',(req,res)=>{
     });
 });
 
-//Login endpoint
 router.post('/login',async (req,res)=>{
 
     const password = req.body.password;
     const email = req.body.email.toLowerCase();
 
     //Checks if email and password is provided
-    if (!email || !password){
+    if(!email || !password){
         res.status(400).json({message : {msgBody : "Error: Please provide an email and password.", msgError: true}});
     };
-        //Check that user exists by email
-        const user = await User.findOne({email});
 
-        //Checks if user's email address is veified
-        if(user.verificationToken == false){
-            return res.status(402).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
-        }
-    
-        if(!user){
-            return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
-        }
-    
-        //Check that password match
-        const isMatch = await user.matchPassword(password);
-    
-        if(!isMatch){
-            return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
-        }
+    //Check that user exists by email
+    const user = await User.findOne({email});
 
-        const token = signToken(user._id);
-        res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
-        res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: false}});
-    
-  
+    //Checks if user's email address is veified
+    if(user.verificationToken == false){
+        return res.status(402).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
+    }
+
+    if(!user){
+        return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
+    }
+
+    //Check that password match
+    const isMatch = await user.matchPassword(password);
+
+    if(!isMatch){
+        return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
+    }
+
+    const token = signToken(user._id);
+    res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
+    res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: false}});
 });
 
 //Logout endpoint, clears auth cookie
@@ -293,6 +292,113 @@ router.put('/reset/:resetToken', async(req, res) => {
 
 });
 
+// partial text search of User schema $text index
+router.post('/search/users', passport.authenticate('jwt', {session : false}), (req, res) =>{
+    const query = req.body.query;
+    const limit = req.body.limit;
+    var page = Math.max(0, req.body.page);
+
+    User.aggregate([{$match: 
+                    {$or:  [{display_name: new RegExp(query, 'i')}, 
+                            {email: new RegExp(query, 'i')}]}}])
+        .limit(limit)
+        .skip(limit * page)
+        .exec((err, users) => {
+        if(err){
+            console.log(err);
+            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        }else{
+            console.log(users);
+            res.status(200).json({users : users});
+        }
+    });
+});
+
+
+//Forgot Password Endpoint
+router.post('/forgot', async(req, res) => {
+    //Takes In User's Email
+    const email = req.body.email.toLowerCase();
+  
+    try { //Checks if user exists
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
+      }
+  
+      //Gets Reset Token
+      const resetToken = user.getResetPasswordToken();
+  
+      await user.save();
+  
+      //Create reset url to email to provided email
+      const resetUrl = `http://localhost:5000/user/reset/${resetToken}`;
+  
+      // HTML Message
+      const message = `
+        <h1>You have requested a password reset</h1>
+        <p>Please use the following link to reset your password:</p>
+        <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+      `;
+  
+      try{
+        await sendEmail({
+          to: user.email,
+          subject: "Password Reset Request",
+          text: message,
+        });
+
+        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+
+      }catch(err){
+        console.log(err);
+  
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+  
+        await user.save();
+
+        res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
+      }
+    } catch (err) {
+      return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
+    }
+});
+
+//Reset Password Endpoint for Forgotten Passwords
+router.put('/reset/:resetToken', async(req, res) => {
+    //Compares token in URL params to hashed token
+    const resetPasswordToken = crypto
+    .createHash(process.env.HASH)
+    .update(req.params.resetToken)
+    .digest(process.env.DIGEST);
+
+    try {
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: "N/A"}});
+    }
+    //Confirms that both passwords match
+    if(!Validator.equals(req.body.password,req.body.password2)){
+        return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+    res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: "N/A"}});
+    } catch (err) {
+        res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
+    }
+});
+
 //Verify Email Endpoint
 router.put('/verify/:verifyToken', async(req, res) => {
     //Compares token in URL params to hashed token
@@ -322,7 +428,6 @@ router.put('/verify/:verifyToken', async(req, res) => {
 //Resend verification email
 router.put('/verify', async(req, res) => {
 
-    console.log("HELOOOOOOOOOOOO")
     //Takes In User's Email
     const email = req.body.email.toLowerCase();
 
@@ -332,7 +437,6 @@ router.put('/verify', async(req, res) => {
   
     try{ //Checks if user exists
       const user = await User.findOne({ email });
-      console.log("HELOOOOOOOOOOOO")
       if(!user){
         return res.status(400).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
       }
@@ -347,7 +451,7 @@ router.put('/verify', async(req, res) => {
         console.log("Old Token is:");
         //console.log(user.resetPasswordToken);
         user.save();
-      /*
+      
         //Creates verify url to email to provided email
         const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
   
@@ -370,13 +474,11 @@ router.put('/verify', async(req, res) => {
         }catch(err){
             return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
         }
-
-        */
-        return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
     }catch(err){
         return res.status(501).json({message : {msgBody : "Error: Stetting verification.", msgError: err}});
     }
 });
+     
 
 /*---------------------------------------------------*/
 //                   Friend APIs
@@ -444,7 +546,7 @@ router.delete('/friend/:email', authorized, (req,res) =>{
         }
     });
 });
-
+       
 /*---------------------------------------------------*/
 //                   Playlistd APIs
 /*---------------------------------------------------*/
@@ -511,9 +613,12 @@ router.get('/playlist/:id', authorized, (req,res) => {
         }
     });
 });
+
 //-------------------------New Playlist APIs-----------------------------//
 
 //Add PlaylistV2
+//Adds tracks with all the same information outputed by the get-recommendations API
+//You can now push the output recommendations directly into a playlist
 router.post('/addplaylistv2', authorized, async (req,res)=>{
     const playlist = await new Playlist({name: req.body.name});
     req.body.tracks.forEach(async(track,i) => {
@@ -605,7 +710,86 @@ router.put('/addtrack', authorized,async(req,res)=>{
         }
     }
 });
+      
+/*---------------------------------------------------*/
+//                   Profile API
+/*---------------------------------------------------*/
 
+// add fav_track (given valid Spotify track ID)
+router.put('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_tracks : req.params.id}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_track", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_track (given valid Spotify track ID)
+router.delete('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_tracks : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_track", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_track", msgError: false}});
+        }
+    });
+
+});
+
+// add fav_genre (given valid Spotify genre)
+router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_genres : req.params.genre}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_genre", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_genre (given valid Spotify genre string)
+router.delete('/fav_genre/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_genres : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_genre", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_genre", msgError: false}});
+        }
+    });
+
+});
+
+// add fav_artist (given valid Spotify artist ID)
+router.put('/fav_artist/:artist', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_artists : req.params.artist}})
+        .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_artist", msgError : false}}))
+        .catch(err => res.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+});
+
+// remove fav_artist (given valid Spotify artist ID)
+router.delete('/fav_artist/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+{
+    User.updateOne({_id : req.user.id}, {$pullAll: { fav_artists : [req.params.id] } }, (err, user) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Could not find remove fav_artist", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({message : {msgBody : "Successfully removed fav_artist", msgError: false}});
+        }
+    });
+
+});
+     
 
 /*---------------------------------------------------*/
 //       Authentication API for Frontend

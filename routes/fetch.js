@@ -127,6 +127,7 @@ spotifyRouter.get("/genres", (req, res) => {
     }).catch((err) => console.log('Error getting genre list!', err)); 
 });
 
+
 //Get Recommendations Based on Seeds
 //This returns an array of 10 songs (name, id, artist, song preview link, song link)
 spotifyRouter.post("/recs", (req, res) => {
@@ -159,6 +160,20 @@ spotifyRouter.post("/recs", (req, res) => {
     }).catch((err) => 
     {
         res.status(501).json({message : {msgBody : "Error retrieving recommendations.", msgError : true}});
+    });
+});
+
+//Gets track info
+spotifyRouter.post("/track/info/:id", (req, res) =>
+{
+    spotifyApi.getTrack(req.params.id).then((track) =>
+    {
+        // console.log(track);
+        res.status(200).json(track);
+    }).catch((err) =>
+    {   
+        console.log(err);
+        res.status(501).json({message : {msgBody : "Error retrieving track.", msgError : true}});
     });
 });
 
@@ -352,8 +367,12 @@ spotifyRouter.get("/recsv2/", (req, res) => {
         res.json(tracks);
         return tracks;
     }).catch((err) => console.log('Error fetching reccomendations!', err)); 
-});
-
+  
+  
+ //Gets Recommendations from strings
+/*Takes in Artists, Tracks, and Genres as strings and converts 
+  the Artists to artistID and the Tracks to trackIDS and gets the 
+closest matching Spotify genre*/
 spotifyRouter.get("/recspipev2/", async(req, res) => {
     var track_ids = [];
     var artist_ids = [];

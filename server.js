@@ -7,7 +7,10 @@ const passport = require("passport");
 const app = express();
 require("dotenv").config({path:'.env'});
 
-app.use(cors());
+app.use(cors({
+    credentials: true, origin: 'http://poosd-f2021-11.herokuapp.com' 
+}));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -22,7 +25,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerJsDoc));
 //Enable Cors
 app.use((req, res, next) => 
 {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'http://poosd-f2021-11.herokuapp.com');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
@@ -31,6 +34,7 @@ app.use((req, res, next) => 
     'Access-Control-Allow-Methods',
     'GET, POST, PATCH, DELETE, OPTIONS'
   );
+  res.setHeader('Access-Control-Allow-Credentials', true);
   next();
 });
 

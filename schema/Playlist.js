@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const Playlist = mongoose.Schema({
     name : {type : String, required : true},
-    user: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
-    friend: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
+    user: {type : mongoose.Schema.Types.ObjectId, ref: 'User'},
+    friend: {type : mongoose.Schema.Types.ObjectId, ref: 'User'},
     songs : [{type: String, _id: false}],
     tracks: [{
         name : {type : String},
