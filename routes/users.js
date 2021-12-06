@@ -420,33 +420,6 @@ router.get('/friends', authorized,async(req,res)=>{
     });
 });
 
-
-//Delete Friend -Gets friend's email through a json request
-
-router.delete('/delfriend', authorized,async(req,res)=>{
-    req.body.email = req.body.email.toLowerCase()
-    User.findOne({email: req.body.email}, function(err,doc) { 
-        if(err){
-            return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: err}});
-        }
-        if(!doc){ //Checks if email is in database
-            return res.status(404).json({message : {msgBody : "Error: User not found.", msgError: true}});
-        }
-        if(doc){ //Checks if friend exists in user's friend's list
-            if(req.user.friends.indexOf(doc.id.toString()) === -1) {
-                //Friend does not exist in user's friend list.
-                return res.status(401).json({message : {msgBody : "Error: User is not your friend.", msgError: true}});
-            }
-            else{
-                //Else friend does exist in user's friend's list
-                User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: doc.id}})
-                .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: false}}))
-                .catch(err => res.status(501).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
-            }
-        }
-    });
-});
-
 //Delete Friend 
 //Gets email through url path
 router.delete('/friend/:email', authorized, (req,res) =>{
