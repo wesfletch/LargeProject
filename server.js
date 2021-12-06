@@ -6,7 +6,7 @@ const passport = require("passport");
 const app = express();
 
 app.use(cors({
-    credentials: true, origin: 'https://poosd-f2021-11.herokuapp.com' 
+    credentials: true, origin: 'http://poosd-f2021-11.herokuapp.com' 
 }));
 app.use(express.json());
 
@@ -20,7 +20,7 @@ require('dotenv').config({path: './.env'});
 // enable CORS, 
 app.use((req, res, next) => 
 {
-  res.setHeader('Access-Control-Allow-Origin', 'https://poosd-f2021-11.herokuapp.com');
+  res.setHeader('Access-Control-Allow-Origin', 'http://poosd-f2021-11.herokuapp.com');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
