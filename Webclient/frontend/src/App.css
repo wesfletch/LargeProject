@@ -36,11 +36,14 @@
   margin-bottom: 5%;
   color: rgb(255, 255, 255);
   border-radius: 2px; 
-  border-color: rgb(156, 39, 176);
 }
 
 .btn-big {
   font-size: 1.4rem;
+}
+
+.btn-biggish {
+  font-size: 1rem;
 }
 
 .btn-bigG {
