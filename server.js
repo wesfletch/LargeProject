@@ -18,7 +18,7 @@ require('dotenv').config({path: './.env'});
 // enable CORS, 
 app.use((req, res, next) => 
 {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'https://poosd-f2021-11.herokuapp.com');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
@@ -27,6 +27,7 @@ app.use((req, res, next) => 
     'Access-Control-Allow-Methods',
     'GET, POST, PATCH, DELETE, OPTIONS'
   );
+  res.setHeader('Access-Control-Allow-Credentials', true);
   next();
 });
 
