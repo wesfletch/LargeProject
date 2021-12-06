@@ -1,21 +1,18 @@
 const express = require('express');
-// const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const passport = require("passport");
 const app = express();
+require("dotenv").config({path:'.env'});
 
 app.use(cors());
-app.use(express.json());
-
-const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
-app.use(express.urlencoded());
-
-require('dotenv').config({path: './.env'});
-
-// enable CORS, 
+//Enable Cors
 app.use((req, res, next) => 
 {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,26 +27,27 @@ app.use((req, res, next) => 
   next();
 });
 
+// Passport middleware
+app.use(passport.initialize());
+
+//Database login
+mongoose.connect(process.env.MONGODB_URI,
+    {useNewUrlParser : true, useFindAndModify: false})
+.then(() => console.log("Mongo DB connected"))
+.catch(err => console.log(err))
+
+//User data API endpoints
+app.use("/users", require("./routes/users"));
+
+//Spotify endpoints
+app.use("/fetch", require("./routes/fetch"))
+
+//Local server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
 {
     console.log('Server listening on port ' + PORT);
 });
-
-// Passport middleware
-app.use(passport.initialize());
-
-const url = process.env.MONGODB_URI;
-const mongoose = require("mongoose");
-mongoose.connect(url)
-    .then(() => console.log("Mongo DB connected"))
-    .catch(err => console.log(err));
-
-// add the /users router (/routes/users.js)
-app.use("/users", require("./routes/users"));
-
-// add the /fetch router (/routes/fetch.js)
-app.use("/fetch", require("./routes/fetch"))
 
 ///////////////////////////////////////////////////
 // For Heroku deployment
@@ -60,6 +58,6 @@ if (process.env.NODE_ENV === 'production')
     app.use(express.static('Webclient/frontend/build'));
     app.get('*', (req, res) =>
     {
-        res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
+        res.sendFile(path.resolve(__dirname, 'Webclient', 'frontend', 'build', 'index.html'));
     });
 }

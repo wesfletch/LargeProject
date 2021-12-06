@@ -1,239 +1,586 @@
-const router = require("express").Router();
+const express = require('express');
+const router = express.Router();
 const passport = require('passport');
 const passportConfig = require('../passport');
-const bcrypt = require('bcrypt');
-const JWT = require("jsonwebtoken");
-
-const User = require("../schema/User.js");
-const Friend = require("../schema/Friend.js");
-const Playlist = require("../schema/Playlist.js");
-
-// Loading validators
-const validateRegisterInput = require("../Validation/register");
-const validateLoginInput = require("../Validation/login");
+const JWT = require('jsonwebtoken');
+const User = require('../models/User');
+const Playlist = require('../models/Playlist');
+const Track = require('../models/Playlist');
+const Validator = require("validator");
+const sendEmail = require("../sendEmail");
+const { request } = require('express');
+const mongoose = require('mongoose');
+const crypto = require("crypto");
+const _ = require('underscore');
+const authorized = passport.authenticate('jwt',{session : false})
+require("dotenv").config({path:'../.env'});
 
 const signToken = userID =>{
     return JWT.sign({
         iss : process.env.JWT_SECRET,
         sub : userID
-    }, process.env.JWT_SECRET, {expiresIn : "1h"});
+    },process.env.JWT_SECRET,{expiresIn : process.env.JWT_EXPIRE});
 }
 
-/*---------------------------------------------------*/
-//             Login/Registration APIs
-/*---------------------------------------------------*/
+//Registration endpint
+router.post('/register',(req,res)=>{
 
-router.post('/register', (req,res) =>
-{
-    // Validation Check
-    const { errors, isValid } = validateRegisterInput(req.body);
-    if (!isValid) {
-        return res.status(400).json(errors);
+    const {password, password2, display_name} = req.body;
+    const email = req.body.email.toLowerCase()
+
+    User.findOne({email},(err,user)=>{
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error searching database.", msgError: err}});
+        }
+        //Checks if user is already registered
+        if(user){
+            return res.status(400).json({message : {msgBody : "Error: Email is already taken.", msgError: true}});
+        }//Checks if email is valid
+        if(!Validator.isEmail(email)){
+            return res.status(401).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
+        }
+        //Checks if password is a valid length
+        if(!Validator.isLength(password, { min: 6, max: 30 })){
+            return res.status(402).json({message : 
+                {msgBody : "Error: Password must be between 6 and 30 characters.", msgError: true}});
+        }
+        //Confirms that both passwords match
+        if(!Validator.equals(password,password2)){
+            return res.status(403).json({message : {msgBody : "Error: Passwords must match.", msgError: true}});
+        }
+        if (!email || !password || !display_name) {
+            return res.status(405).json({message : {msgBody : "Error: Please provide an email, name, and password.", msgError: true}});
+        }
+        else{  
+            //creates verification Token 
+            const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
+            const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
+            //Saves the new user
+            const newUser = new User({
+                display_name: req.body.display_name,
+                email: req.body.email,
+                password: req.body.password,
+                resetPasswordToken: verificationToken
+            });
+            newUser.save(async (err)=>{
+                if(err){
+                    return res.status(500).json({message : {msgBody : "Error saving to database.", msgError: err}});
+                };
+            });
+  
+            //Sends verification email
+            try{
+                //Create reset url to email to provided email
+                const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
+
+                // HTML Message
+                const message = `
+                <h1>Thank You For Joining ShareTunes!</h1>
+                <p>We hope you enjoy discovering new music with us!</p>
+                <p>Please use the following link to reset your password:</p>
+                <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
+                `;
+
+                sendEmail({
+                to: email,
+                subject: "Welcome to ShareTunes!",
+                text: message
+                });
+                console.log(newUser);
+
+                return res.status(200).json({message : {msgBody : "User successfully saved. Email Sent.", msgError: false}});
+            }catch(err){
+                console.log(err);
+                return res.status(501).json({message : {msgBody : "Error: User saved. Email could not be sent.", msgError: err}});
+            }
+        }
+    });
+});
+
+//Login endpoint
+router.post('/login',async (req,res)=>{
+
+    const password = req.body.password;
+    const email = req.body.email.toLowerCase();
+
+    //Checks if email and password is provided
+    if (!email || !password){
+        res.status(400).json({message : {msgBody : "Error: Please provide an email and password.", msgError: true}});
+    };
+        //Check that user exists by email
+        const user = await User.findOne({email});
+
+        //Checks if user's email address is veified
+        if(user.verificationToken == false){
+            return res.status(400).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
+        }
+    
+        if(!user){
+            return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
+        }
+    
+        //Check that password match
+        const isMatch = await user.matchPassword(password);
+    
+        if(!isMatch){
+            return res.status(402).json({message : {msgBody : "Error: Wrong credentials.", msgError: true}});
+        }
+
+        const token = signToken(user._id);
+        res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
+        res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: false}});
+    
+});
+
+//Logout endpoint, clears auth cookie
+router.get('/logout', authorized ,(user,res)=>{
+    res.clearCookie('access_token');
+    return res.status(200).json({message : {msgBody : "Sucessfully logged out.", msgError: false}});
+});
+
+//Edit User Profile
+router.put('/update/', authorized,async(req,res)=>{
+
+    //Updates the user's display name
+    if(req.body.display_name){
+        req.user.display_name = req.body.display_name;
+    }
+
+    //Updates the user's password
+    if(req.body.password){
+        //Checks if password is a valid length
+        if(!Validator.isLength(req.body.password, { min: 6, max: 30 })){
+            return res.status(402).json({message : 
+                {msgBody : "Error: Password must be between 6 and 30 characters.", msgError: true}});
+        }
+        //Confirms that both passwords match
+        if(!Validator.equals(req.body.password,req.body.password2)){
+            return res.status(403).json({message : {msgBody : "Error: Passwords must match.", msgError: true}});
+        }
+        req.user.password = req.body.password;
+    }
+
+    //Updates the user's email
+    if(req.body.email){
+        const email = req.body.email.toLowerCase();
+        var user = await User.findOne({email})
+
+        console.log(user);
+        //Checks if email is already in database.
+        if(user){
+            return res.status(400).json({message : {msgBody : "Error: Email is already taken.", msgError: true}});
+        }
+        //Checks if email is valid
+        else if(!Validator.isEmail(email)){
+            return res.status(401).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
+        }
+        else{
+            req.user.email = email;
+        }
+    }
+
+    //Updates the user's image
+    if(req.body.image){
+        req.user.image = req.body.image;
     }
     
-    const {email, password} = req.body;
-    User.findOne({ email }, (err,user) => 
-    {
+    //Updates the user's favorite artists
+    if(req.body.fav_artists){
+        req.user.fav_artists = req.body.fav_artists;
+    }
+
+    //Updates the user's favorite tracks
+    if(req.body.fav_tracks){
+        req.user.fav_tracks = req.body.fav_tracks;
+    }
+
+    //Updates the user's favorite genres
+    if(req.body.fav_genres){
+        req.user.fav_genres = req.body.fav_genres;
+    }
+
+    req.user.save(err=>{
         if(err)
-            res.status(500).json({message : {msgBody : "Error searching database", msgError: true}});
-        if(user)
-        {
-            res.status(400).json({message : {msgBody : "Email is already taken", msgError: true}});
-        }
+            return res.status(502).json({message : {msgBody : "Error updating user's information.", msgError: err}});
         else
-        {
-            const newUser = new User(req.body);
-            console.log(user);
-            newUser.save(err => 
-            {
-                if(err)
-                    res.status(500).json({message : {msgBody : "Error saving to database", msgError: true}});
-                else
-                    res.status(201).json({message : {msgBody : "Account successfully created", msgError: false}});
+            return res.status(200).json({message : {msgBody : "Successfully updated user's information.", msgError: false}});
+    });
+});
+
+//Forgot Password Endpoint
+router.post('/forgot', async(req, res) => {
+    //Takes In User's Email
+    const email = req.body.email.toLowerCase();
+  
+    try { //Checks if user exists
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
+      }
+  
+      //Gets Reset Token
+      const resetToken = user.getResetPasswordToken();
+  
+      await user.save();
+  
+      //Create reset url to email to provided email
+      const resetUrl = `http://localhost:5000/user/reset/${resetToken}`;
+  
+      // HTML Message
+      const message = `
+        <h1>You have requested a password reset</h1>
+        <p>Please use the following link to reset your password:</p>
+        <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+      `;
+  
+      try{
+        await sendEmail({
+          to: user.email,
+          subject: "Password Reset Request",
+          text: message,
+        });
+
+        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+
+      }catch(err){
+        console.log(err);
+  
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+  
+        await user.save();
+
+        res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
+      }
+    } catch (err) {
+      return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
+    }
+});
+
+//Reset Password Endpoint for Forgotten Passwords
+router.put('/reset/:resetToken', async(req, res) => {
+    //Compares token in URL params to hashed token
+    const resetPasswordToken = crypto
+    .createHash(process.env.HASH)
+    .update(req.params.resetToken)
+    .digest(process.env.DIGEST);
+
+    try {
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: "N/A"}});
+    }
+    //Confirms that both passwords match
+    if(!Validator.equals(req.body.password,req.body.password2)){
+        return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+    res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: "N/A"}});
+    } catch (err) {
+        res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
+    }
+
+});
+
+//Verify Email Endpoint
+router.put('/verify/:verifyToken', async(req, res) => {
+    //Compares token in URL params to hashed token
+    const verificationToken= crypto
+    .createHash(process.env.HASH)
+    .update(req.params.verifyToken)
+    .digest(process.env.DIGEST);
+    console.log(verificationToken)
+    try {
+        const user = await User.findOne({resetPasswordToken: verificationToken});
+
+        if (!user) {
+            return res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
+        }
+
+        user.verificationToken = true;
+        user.resetPasswordToken = undefined;
+
+        await user.save();
+        return res.status(200).json({message : {msgBody : "User's Email Successfully Verified.", msgError: false}});
+    } catch (err) {
+        return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
+    }
+
+});
+
+//Resend verification email
+router.put('/verify', async(req, res) => {
+
+    console.log("HELOOOOOOOOOOOO")
+    //Takes In User's Email
+    const email = req.body.email.toLowerCase();
+
+    if(!email){
+        return res.status(401).json({message : {msgBody : "Error: Please provide an email address.", msgError: true}});
+    }
+  
+    try{ //Checks if user exists
+      const user = await User.findOne({ email });
+      console.log("HELOOOOOOOOOOOO")
+      if(!user){
+        return res.status(400).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
+      }
+  
+        //Gets verify Token
+        const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
+        const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
+
+        console.log("New Token is:");
+        console.log(verificationToken);
+        //user.resetPasswordToken = verificationToken;
+        console.log("Old Token is:");
+        //console.log(user.resetPasswordToken);
+        user.save();
+      
+        //Creates verify url to email to provided email
+        const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
+  
+      // HTML Message
+      const message = `
+        <h1>Thank you for signing up with ShareTunes!</h1>
+        <p>Please use the following link to verify your email:</p>
+        <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
+      `;
+  
+      try{
+            await sendEmail({
+            to: email,
+            subject: "ShareTunes Email Verification",
+            text: message,
             });
-        }
-    });
-});
 
-router.post('/login', passport.authenticate('local', {session : false}), (req,res) => 
-{
-    // Form validation; ensure we've been given all necessary info
-    const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) 
-    {
-        return res.status(400).json(errors);
+            return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+
+        }catch(err){
+            return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
+        }
+
+        return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+    }catch(err){
+        return res.status(501).json({message : {msgBody : "Error: Stetting verification.", msgError: err}});
     }
-
-    if (req.isAuthenticated())
-    {
-       const {_id,email} = req.user;
-       const token = signToken(_id);
-       res.cookie('access_token', token, {httpOnly: true, sameSite:true}); 
-       res.status(200).json({isAuthenticated : true, user : {email}, token: token});
-    }
-});
-
-router.get('/logout', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    res.clearCookie('access_token');
-    res.status(200).json({user:{email : ""},success : true});
-});
-
-// partial text search of User schema $text index
-router.post('/search/users', passport.authenticate('jwt', {session : false}), (req, res) =>
-{
-    const query = req.body.query;
-    const limit = req.body.limit;
-    var page = Math.max(0, req.body.page);
-
-    User.aggregate([{$match: 
-                    {$or:  [{display_name: new RegExp(query, 'i')}, 
-                            {email: new RegExp(query, 'i')}]}}])
-        .limit(limit)
-        .skip(limit * page)
-        .exec((err, users) =>
-    {
-        if(err)
-        {
-            console.log(err);
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-
-        }
-        else
-        {
-            console.log(users);
-            res.status(200).json({users : users});
-        }
-    });
-
 });
 
 /*---------------------------------------------------*/
 //                   Friend APIs
 /*---------------------------------------------------*/
 
-// Add friend
-router.post('/friend', passport.authenticate('jwt', {session : false}) ,(req,res) => 
-{
-    const friend = new Friend(req.body);
-
-    friend.save(err => 
-    {
-        if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else
-        {
-            req.user.friends.push(friend);
-            req.user.save(err => 
-            {
-                if(err)
-                    res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-                else
-                    res.status(200).json({message : {msgBody : "Successfully created Friend", msgError : false}});
-            });
+//Add friend
+router.post('/add', authorized, async(req,res)=>{
+    User.findOne({email: req.body.email}, function(err,doc) { 
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error finding friend.", msgError: err}});
         }
-    })
-});
-
-// Get all friends
-router.get('/friends', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    User.findById({_id : req.user._id}).populate('friends').exec((err,document) => 
-    {
-        if(err)
-        {
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        if(!doc){ //Checks if email is in database
+            return res.status(404).json({message : {msgBody : "Error: User not found.", msgError: true}});
         }
-        else 
-        {
-            res.status(200).json({friends : document.friends, authenticated : true});
+        if(doc){ //Checks if friend already exists in friend's list
+            if(req.user.friends.indexOf(doc.id.toString()) === -1) {
+                User.findByIdAndUpdate({_id:req.user._id},{$push:{friends : doc._id}})
+                .then(() =>User.findByIdAndUpdate(doc._id,{$push:{friends : req.user.id}}))
+                .then(() => res.status(200).json({message : {msgBody : "Successfully  added friend.", msgError: false}}))
+                .catch(err => res.status(501).json({message : {msgBody : "Error adding friend.", msgError: err}}));
+            }
+            else{
+                //Else friend already exists in friend's list
+                return res.status(401).json({message : {msgBody : "Error: User is already your friend.", msgError: true}});
+            }
         }
     });
 });
 
-// Edit Friend Fields
-router.put('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    Friend.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Edited Friend", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+//Get all friends
+router.get('/friends', authorized,async(req,res)=>{
+    User.findById({_id : req.user._id}).populate('friends',{resetPasswordToken: 0,
+        resetPasswordExpire: 0, password:0, verificationToken:0, date:0, __v:0}).exec((err,document)=>{
+        if(err)
+            res.status(500).json({message : {msgBody : "Error fetching friend.", msgError: err}});
+        else{
+            document.friends = _.sortBy( document.friends, 'display_name' );
+            res.status(200).json({friends : document.friends});
+        }
+    });
 });
 
-// Delete Friend
-router.delete('/friend/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    Friend.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Friend", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+//Delete Friend
+router.delete('/friend/:id', authorized,(req,res)=>{
+    User.findOneAndUpdate({_id: req.user._id}, {$pull: {friends: req.params.id}})
+    .then(() => res.status(200).json({message : {msgBody : "Friend successfully deleted.", msgError: false}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error deleting friend.", msgError: err}}));
 });
 
 /*---------------------------------------------------*/
-//                   Playlist APIs
+//                   Playlistd APIs
 /*---------------------------------------------------*/
-// Add Playlist
-router.post('/playlist', passport.authenticate('jwt', {session : false}), (req,res) =>
-{
-    const playlist = new Playlist(req.body);
-    playlist.user = req.user.id;    // add user ID to new playlist
+
+//Add Playlist
+router.post('/addplaylist', authorized, async(req,res) =>{
+    const playlist = new Playlist({
+        name : req.body.name,
+        songs : req.body.songs,
+        user : req.user.id,
+    });
 
     playlist.save(err => 
     {
         if(err)
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        else
-        {
+            res.status(500).json({message : {msgBody : "Error adding playlist.", msgError: true}});
+        else{
             req.user.playlists.push(playlist);
             req.user.save(err =>
             {
                 if(err)
-                    res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+                    res.status(501).json({message : {msgBody : "Error saving playlist.", msgError: true}});
                 else
-                    res.status(200).json({message : {msgBody : "Successfully created a Playlist", msgError : false}});
+                    res.status(200).json({message : {msgBody : "Successfully created paylist.", msgError: false}});
             });
         }
     })
 });
 
-// Get user's playlists
-router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    User.findById({_id : req.user._id}).populate('playlists').exec((err,document) => 
-    {
+//Delete a playlist
+router.delete('/playlist/:id', authorized,(req,res)=>{
+    Playlist.findByIdAndDelete(req.params.id)
+    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist.", msgError: false}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error deleting playlist.", msgError: err}}));
+});
+
+//Get user's playlists
+router.get('/playlists', authorized,(req,res)=>{
+    User.findById({_id : req.user._id}).populate('playlists').exec((err,document)=>{
         if(err)
-        {
-            console.log(err);
-            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
-        }
-        else
-        {
-            res.status(200).json({playlists : document.playlists, authenticated : true});
+            res.status(500).json({message : {msgBody : "Error fetching playlists.", msgError: err}});
+        else{
+            res.status(200).json({playlists : document.playlists});
         }
     });
 });
 
-// Edit Playlist
-router.put('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res) => 
-{
+//Edit Playlist
+router.put('/playlist/:id', authorized,(req,res)=>{
     Playlist.findByIdAndUpdate(req.params.id,{$set: req.body})
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist!", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+    .then(() => res.status(200).json({message : {msgBody : "Successfully Updated Playlist.", msgError: false}}))
+    .catch(err => res.status(500).json({message : {msgBody : "Error updated playlist.", msgError: err}}));
 });
 
-// Delete Playlist
-router.delete('/playlist/:id', passport.authenticate('jwt',{session : false}),(req,res)=>{
-    Playlist.findByIdAndDelete(req.params.id)
-    .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist", msgError : false}}))
-    .catch(err => es.status(500).json({message : {msgBody : "Error has occured", msgError: true}}));
+//------------------------New Playlist APIs-----------------------------//
+
+//Add PlaylistV2
+router.post('/addplaylistv2', authorized, async (req,res)=>{
+    const playlist = await new Playlist({name: req.body.name});
+    req.body.tracks.forEach(async(track,i) => {
+        await playlist.tracks.push(track)
+    });
+    console.log(playlist)
+    playlist.save(err=>{
+        if(err)
+            res.status(500).json({message : {msgBody : "Error adding playlist.", msgError: err}});
+        else{
+            req.user.playlists.push(playlist);
+            req.user.save(err=>{
+                if(err)
+                    res.status(502).json({message : {msgBody : "Error saving playlist.", msgError: err}});
+                else
+                res.status(200).json({message : {msgBody : "Successfully created paylist.", msgError: false}});
+            });
+        }
+    })
 });
 
+//Delete a track from a playlist
+router.delete('/deltrack', authorized,async(req,res)=>{
+
+    const _id = req.body.playlist_id;
+    const t_id = req.body.track_id;
+    console.log(_id);
+
+    try{
+        const playlist = await Playlist.findById(_id);
+        console.log(playlist)
+        if(!playlist){
+            return res.status(400).json({message : {msgBody : "Error: Could not locate playlist.", msgError: true}});
+        }
+        if(!playlist.tracks.id(t_id)){
+            return res.status(400).json({message : {msgBody : "Error: Could not locate track to delete.", msgError: true}});
+        }
+
+        playlist.tracks.pull({_id: t_id})
+        playlist.save(err =>{
+            if(err)
+                return res.status(500).json({message : {msgBody : "Error saving playlist.", msgError: err}});
+        })
+
+        return res.status(200).json({message : {msgBody : "Sucessfully Deleted Song.", msgError: false}});
+    }
+    catch(err){
+        if(err){
+            return res.status(501).json({message : {msgBody : "Error deleting song.", msgError: err}});
+        }
+    }
+});
+
+//Add a track to a playlist
+router.put('/addtrack', authorized,async(req,res)=>{
+    const _id = req.body.playlist_id;
+    console.log(_id);
+
+    try{
+        const playlist = await Playlist.findById(_id);
+        if(!playlist){
+            return res.status(400).json({message : {msgBody : "Error: Could not locate playlist.", msgError: true}});
+        }
+
+        var count = 0;
+        req.body.tracks.forEach(async(track,i) => {
+            if(playlist.tracks.id(track._id)){
+                count++;
+                return
+            }
+            await playlist.tracks.push(track)
+        });
+
+        playlist.save(err =>{
+            if(err)
+                return res.status(500).json({message : {msgBody : "Error saving playlist.", msgError: err}});
+        })
+
+        if(count=0){
+            return res.status(200).json({message : {msgBody : "Sucessfully Added Song/s.", msgError: false}});
+        }
+        else{
+            return res.status(200).json({message : {msgBody : "Playlist sucessfully updated. Some songs were duplicates and not added.", msgError: false}});
+        }
+    }
+    catch(err){
+        if(err){
+            return res.status(501).json({message : {msgBody : "Error adding song/s.", msgError: err}});
+        }
+    }
+});
+
+
 /*---------------------------------------------------*/
-//                   Authenticated API
+//       Authentication API for Frontend
 /*---------------------------------------------------*/
 
-router.get('/authenticated', passport.authenticate('jwt', {session : false}), (req,res) => 
-{
-    const {email} = req.user;
-    res.status(200).json({isAuthenticated : true, user : {email}});
+router.get('/authenticated',authorized,(req,res)=>{
+    const {display_name} = req.user;
+    res.status(200).json({isAuthenticated : true, user : {display_name}});
 });
 
 module.exports = router;

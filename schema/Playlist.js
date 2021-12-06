@@ -1,18 +1,17 @@
 const mongoose = require('mongoose')
 
-const reqString = {
-    type: String, 
-    required: true
-}
-
 const Playlist = mongoose.Schema({
-    name: String,
+    name : {type : String, required : true},
     user: {type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
-    friend: {type: mongoose.Schema.Types.ObjectId, ref: 'Friend', required: false},
-    type: String,
-    songs: Array,
+    friend: [{type : mongoose.Schema.Types.ObjectId, ref: 'User', required : true}],
+    songs : [{type: String, _id: false}],
+    tracks: [{
+        name : {type : String},
+        id : {type : String, default: null},
+        artist : {type : String, default: null},
+        preview : {type : String, default: null},
+        url_link : {type : String, default: null} ,
+    }],
 })
-
-//if you want one of the catagories to be required all you have to do is change 'String,' to: 'reqString,'
 
 module.exports = mongoose.model('Playlist', Playlist)

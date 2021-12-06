@@ -1,32 +1,31 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const crypto = require("crypto");
 const bcrypt = require('bcrypt');
+require("dotenv").config({path:'../.env'});
 
 const reqString = {
     type: String, 
     required: true
 }
 
-const User = mongoose.Schema({
-    country: String,
-    display_name: String,
-    email: String,
-    spotify_uri: String,
-    link: String,
-    ID: String,
-    password: String,
-    profile_image: String,
-    product: String,
-    type: String,
-    access_token: String,
-    refresh_token: String,
-    top_music: Array,
-    top_artists: Array,
-    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'Friend'}],
+const User = new mongoose.Schema({
+    display_name: {type: String, required: true, trim: true},
+    email: {type: String, required: true, lowercase: true, trim: true},
+    password: {type: String, required: true, trim: true},
+    image:{type: String, trim: true},
+    date: {type: Date, default: Date.now},
+    fav_genres : [{type: String, _id: false}],
+    fav_artists :[{type: String, _id: false}],
+    fav_tracks : [{type: String, _id: false}],
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref: 'User'}],
     playlists : [{type : mongoose.Schema.Types.ObjectId, ref: 'Playlist'}],
-})
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    verificationToken: {type: Boolean, default: false}
+});
 User.index({display_name: 'text', email: 'text'});
 
-// for password encryption
+//For password encryption
 User.pre('save', function(next)
 {
     if(!this.isModified('password'))
@@ -40,6 +39,27 @@ User.pre('save', function(next)
     });
 });
 
+//Compares user's entered password to their encrypted password
+User.methods.matchPassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+}
+
+//Sets the reset password token.
+User.methods.getResetPasswordToken = function () {
+    const resetToken = crypto.randomBytes(20).toString(process.env.DIGEST);
+  
+    // Hash token (private key) and save to database
+    this.resetPasswordToken = crypto
+      .createHash(process.env.HASH)
+      .update(resetToken)
+      .digest(process.env.DIGEST);
+  
+    // Set token expire date
+    this.resetPasswordExpire = Date.now() + 10 * (60 * 1000); // Ten Minutes
+    return resetToken;
+};
+
+//Compares password for authentication
 User.methods.comparePassword = function(password,cb) 
 {
     // no need to hash our password beforehand, bcrypt does this for us
