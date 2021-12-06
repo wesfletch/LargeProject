@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import CreatePlaylistPage from './pages/CreatePlaylistPage';
+import EditPlaylistPage from './pages/EditPlaylistPage';
+import AddSongsPage from './pages/AddSongsPage';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -16,6 +18,8 @@ ReactDOM.render(
         <Route path="home" element={<HomePage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="createPlaylist" element={<CreatePlaylistPage />} />
+        <Route path="editPlaylist" element={<EditPlaylistPage />} />
+        <Route path="addSongs" element={<AddSongsPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,

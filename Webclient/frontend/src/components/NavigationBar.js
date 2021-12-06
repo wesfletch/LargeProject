@@ -4,6 +4,10 @@ import {Form, Button} from 'react-bootstrap';
 
 function NavigationBar()
 {
+    const goHome = async event =>
+    {
+        window.location.href = '/home';
+    };
     function getPath()
     {
         if (process.env.NODE_ENV === 'production')
@@ -39,7 +43,11 @@ function NavigationBar()
     };
     return (
         <div class="flex-col">
-            <div class="place oswald-normal-lilac-bush-17px">HOME</div>
+            <div class="place oswald-normal-lilac-bush-17px">
+                <Button variant='welcomeBtn' size="biggish" onClick={goHome}>
+                    Home
+                </Button>
+            </div>
             <div class="welcomeBtn oswald-normal-white-17px">
                 <Button variant='welcomeBtn' size="biggish" onClick={doCreatePlaylist}>
                     Create New Playlist
