@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {Form, Button} from 'react-bootstrap';
+import NavigationBar from '../components/NavigationBar';
 
 function CreatePlaylist()
 {
@@ -35,6 +36,45 @@ function CreatePlaylist()
         }
     };
     return (
+        <body class="bodies">
+            <input type="hidden" id="anPageName" name="page" value="create-new-playlist" />
+            <div class="container-center-horizontal">
+            <div class="create-new-playlist screen">
+                <div class="overlap-group-container">
+                <div class="overlap-group2">
+                    <div class="sidebar"></div>
+                    <div class="menu">
+                    <img class="marker" src="img/marker@2x.svg" />
+                    <NavigationBar/>
+                    </div>
+                </div>
+                <div class="overlap-group1 border-1px-black-3">
+                    <div class="create-new-playlist-2 oswald-normal-black-40px">Create New Playlist</div>
+                    <div class="rectangle-50"></div>
+                    <div class="playlist-name oswald-normal-black-30px">Playlist name</div>
+                    <div class="rectangle-55">
+                        <Form>
+                            <Form.Group class="formElement">
+                                <Form.Control type="text" placeholder="Best of Hamilton" ref={(c) => name = c}/>
+                            </Form.Group>
+                        </Form>
+                    </div>
+                    <div class="would-you-like-to-cr oswald-normal-black-30px">
+                    Would you like to create a playlist with a friend? (Optional)
+                    </div>
+                    <div class="rectangle-54"></div>
+                    <div class="button">
+                        <Button variant='signInBtn' size="big" onClick={doCreatePlaylist}>
+                            Create New Playlist
+                        </Button>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+        </body>
+    );
+    /*return (
         <div class="row">
             <div class="col-lg-3 col-md-2 col-sm-1"></div>
             <div class="col-lg-6 col-md-8 col-sm-10">
@@ -57,7 +97,7 @@ function CreatePlaylist()
             </div>
             <div class="col-lg-3 col-md-2 col-sm-1"></div>
         </div>
-    );
+    );*/
 };
 
 export default CreatePlaylist;

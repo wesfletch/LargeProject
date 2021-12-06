@@ -51,11 +51,9 @@ function Login()
                 <div class="overlap-group">
                 <div class="background"></div>
                 <div class="button">
-                    <div class="create-new-playlist">
-                        <Button variant='signInBtn' size="big" onClick={doLogin}>
-                            Sign In
-                        </Button>
-                    </div>
+                    <Button variant='signInBtn' size="big" onClick={doLogin}>
+                        Sign In
+                    </Button>
                 </div>
                 <div class="continue-as-guest">Continue As Guest</div>
                 <div class="dont-have-an-account">Don’t have an account?</div>
