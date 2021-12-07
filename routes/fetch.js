@@ -30,6 +30,35 @@ setInterval(token, 3600000);
 //                   Spotify APIs
 /*---------------------------------------------------*/
 
+//Gets track info based on trackIDs
+//Uses a request body
+spotifyRouter.get("/trackinfo", async(req, res) => {
+
+    var allsongs = [];
+    try{
+        await Promise.all(
+            req.body.map(async(song) =>{
+                var data = await spotifyApi.getTrack(song);
+                console.log(song)
+                allsongs.push({
+                    "name": data.body.name,
+                    "id": data.body.id,
+                    "artist": data.body.artists[0]?.name,
+                    "preview": data.body.preview_url,
+                    "url_link": data.body.external_urls.spotify
+                });
+            })
+        )
+        return res.status(200).send(allsongs)
+    }
+    catch(err){
+        if(err){
+            return res.status(501).json({message : {msgBody : "Error retrieving track information.", msgError : true}});
+        }
+    }
+});
+
+
 // Search artists by name/get ArtistID
 //This returns the artist with the exact matching name (name, id, image link)
 spotifyRouter.post("/artist/", (req, res) => {
@@ -260,6 +289,38 @@ spotifyRouter.get("/recspipe", async(req, res) => {
 //=================================================================//
 /*Same as the above "old" APIs but uses query instead of a request body*/
 
+//Gets track info based on trackIDs
+//Uses a query
+spotifyRouter.get("/trackinfov2/", async(req, res) => {
+
+    var allsongs = [];
+    if(typeof req.query.songs === 'string') {
+        req.query.songs = [req.query.songs];
+    }
+
+    try{
+        await Promise.all(
+            req.query.songs.map(async(song) =>{
+                var data = await spotifyApi.getTrack(song);
+                console.log(song)
+                allsongs.push({
+                    "name": data.body.name,
+                    "id": data.body.id,
+                    "artist": data.body.artists[0]?.name,
+                    "preview": data.body.preview_url,
+                    "url_link": data.body.external_urls.spotify
+                });
+            })
+        )
+        return res.status(200).send(allsongs)
+    }
+    catch(err){
+        if(err){
+            return res.status(501).json({message : {msgBody : "Error retrieving track information.", msgError : true}});
+        }
+    }
+});
+
 // Search artists by name/get ArtistID
 //This returns the artist with the exact matching name (name, id, image link)
 spotifyRouter.get("/artistv2/", (req, res) => {
@@ -284,7 +345,9 @@ spotifyRouter.get("/artistv2/", (req, res) => {
             res.send(text.Error);
             return res;    
         }
-    }).catch((err) => console.log(err));
+    }).catch((err) =>{
+        res.status(501).json({message : {msgBody : "Error retrieving artists.", msgError : true}});
+    });
 });
 
 // Search artists by name
@@ -296,8 +359,7 @@ spotifyRouter.get("/artistsv2/", (req, res) => {
             const text = {"Error": "No artists found"};
             console.log("No artists found");
             res.send(text);
-            return res;
-        };
+            return res;      };
         data.body.artists.items.forEach(async(artist,i) => {
             artists.push({
                 'name': artist.name,
@@ -308,7 +370,9 @@ spotifyRouter.get("/artistsv2/", (req, res) => {
         console.log("Matching artists found");
         res.json(artists);
         return artists;
-    }).catch((err) => console.log(err));
+    }).catch((err) => {
+        res.status(501).json({message : {msgBody : "Error finding artist(s).", msgError : true}});
+    });
 });
 
 // Search tracks by name/get TrackID
@@ -334,7 +398,9 @@ spotifyRouter.get("/trackv2/", (req, res) => {
         console.log("Matching tracks found");
         res.json(tracks);
         return tracks;
-    }).catch((err) =>console.error(err));
+    }).catch((err) =>{
+        return res.status(501).json({message : {msgBody : "Error retrieving track(s).", msgError : true}});
+    });
 });
 
 //Get Recommendations Based on Seeds
@@ -367,9 +433,9 @@ spotifyRouter.get("/recsv2/", (req, res) => {
         res.json(tracks);
         return tracks;
     }).catch((err) => console.log('Error fetching reccomendations!', err)); 
-  
-  
- //Gets Recommendations from strings
+});
+
+//Gets Recommendations from strings
 /*Takes in Artists, Tracks, and Genres as strings and converts 
   the Artists to artistID and the Tracks to trackIDS and gets the 
 closest matching Spotify genre*/
@@ -452,4 +518,3 @@ spotifyRouter.get("/recspipev2/", async(req, res) => {
 });
 
 module.exports = spotifyRouter;
-
