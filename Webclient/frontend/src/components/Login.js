@@ -21,14 +21,12 @@ function Login()
     const doLogin = async event =>
     {
         event.preventDefault();
-        alert("test");
         var obj = {email:email.value, password:password.value};
         var js = JSON.stringify(obj);
         try
         {
             const response = await fetch(getPath(), {method:'POST',credentials: 'include', body:js,headers:{'Content-Type':'application/json'}});
             var res = JSON.parse(await response.text());
-            alert(res.message.msgBody);
             if (!res.message.msgError)
             {
                 //alert("access_token=" + res.token);
