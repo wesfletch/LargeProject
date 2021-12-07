@@ -30,7 +30,7 @@ function NavigationBar()
         {
             const response = await fetch(getPath(), {method:'GET',credentials:'include',headers:{'Content-Type':'application/json'}});
             var res = JSON.parse(await response.text());
-            if (res.success)
+            if (!res.message.msgError)
             {
                 window.location.href = '/';
             }

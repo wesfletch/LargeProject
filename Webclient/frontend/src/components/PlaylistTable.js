@@ -38,7 +38,7 @@ function PlaylistTable()
         }
     }
     async function doEditPlaylist(name) {
-        localStorage.setItem("playlist", name);
+        localStorage.setItem("playlist", sessionStorage.getItem(name));
         window.location.href = '/editPlaylist';
     }
     function getOtherPath()
