@@ -715,8 +715,25 @@ router.put('/addtrack', authorized,async(req,res)=>{
 //                   Profile API
 /*---------------------------------------------------*/
 
+//Returns user's favorite tracks, songs, and genres
+router.get('/getfavs/', authorized, (req,res) =>{
+    
+    try{
+        var userFavorites ={ 
+            "fav_artists": req.user.fav_artists,
+            "fav_genres": req.user.fav_genres,
+            "fav_tracks": req.user.fav_tracks
+        };
+        return res.status(200).json(userFavorites)
+    }catch(err){
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error getting user's favorites", msgError: err}})
+        }
+    }
+})
+
 // add fav_track (given valid Spotify track ID)
-router.put('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.put('/fav_track/:id', authorized, (req,res) =>
 {
     User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_tracks : req.params.id}})
         .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_track", msgError : false}}))
@@ -724,7 +741,7 @@ router.put('/fav_track/:id', passport.authenticate('jwt', {session : false}), (r
 });
 
 // remove fav_track (given valid Spotify track ID)
-router.delete('/fav_track/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.delete('/fav_track/:id', authorized, (req,res) =>
 {
     User.updateOne({_id : req.user.id}, {$pullAll: { fav_tracks : [req.params.id] } }, (err, user) =>
     {
@@ -741,7 +758,7 @@ router.delete('/fav_track/:id', passport.authenticate('jwt', {session : false}),
 });
 
 // add fav_genre (given valid Spotify genre)
-router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.put('/fav_genre/:genre', authorized, (req,res) =>
 {
     User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_genres : req.params.genre}})
         .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_genre", msgError : false}}))
@@ -749,7 +766,7 @@ router.put('/fav_genre/:genre', passport.authenticate('jwt', {session : false}),
 });
 
 // remove fav_genre (given valid Spotify genre string)
-router.delete('/fav_genre/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.delete('/fav_genre/:id', authorized, (req,res) =>
 {
     User.updateOne({_id : req.user.id}, {$pullAll: { fav_genres : [req.params.id] } }, (err, user) =>
     {
@@ -766,7 +783,7 @@ router.delete('/fav_genre/:id', passport.authenticate('jwt', {session : false}),
 });
 
 // add fav_artist (given valid Spotify artist ID)
-router.put('/fav_artist/:artist', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.put('/fav_artist/:artist', authorized, (req,res) =>
 {
     User.findByIdAndUpdate({_id : req.user.id}, {$push: {fav_artists : req.params.artist}})
         .then(() => res.status(200).json({message : {msgBody : "Successfully added fav_artist", msgError : false}}))
@@ -774,7 +791,7 @@ router.put('/fav_artist/:artist', passport.authenticate('jwt', {session : false}
 });
 
 // remove fav_artist (given valid Spotify artist ID)
-router.delete('/fav_artist/:id', passport.authenticate('jwt', {session : false}), (req,res) =>
+router.delete('/fav_artist/:id', authorized, (req,res) =>
 {
     User.updateOne({_id : req.user.id}, {$pullAll: { fav_artists : [req.params.id] } }, (err, user) =>
     {
