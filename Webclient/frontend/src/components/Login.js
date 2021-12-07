@@ -28,7 +28,7 @@ function Login()
         {
             const response = await fetch(getPath(), {method:'POST',credentials: 'include', body:js,headers:{'Content-Type':'application/json'}});
             var res = JSON.parse(await response.text());
-            if (res.isAuthenticated)
+            if (!res.message.msgError)
             {
                 //alert("access_token=" + res.token);
                 //document.cookie = "access_token=" + res.token;
