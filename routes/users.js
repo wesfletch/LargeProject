@@ -72,13 +72,13 @@ router.post('/register',(req,res)=>{
             //Sends verification email
             try{
                 //Create reset url to email to provided email
-                const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
+                const verifyUrl = `https://poosd-f2021-11.herokuapp.com/user/verify/${verifyToken}`;
 
                 // HTML Message
                 const message = `
                 <h1>Thank You For Joining ShareTunes!</h1>
                 <p>We hope you enjoy discovering new music with us!</p>
-                <p>Please use the following link to reset your password:</p>
+                <p>Please use the following link to verify your email:</p>
                 <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
                 `;
 
@@ -314,58 +314,6 @@ router.post('/search/users', passport.authenticate('jwt', {session : false}), (r
     });
 });
 
-
-//Forgot Password Endpoint
-router.post('/forgot', async(req, res) => {
-    //Takes In User's Email
-    const email = req.body.email.toLowerCase();
-  
-    try { //Checks if user exists
-      const user = await User.findOne({ email });
-  
-      if (!user) {
-        return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
-      }
-  
-      //Gets Reset Token
-      const resetToken = user.getResetPasswordToken();
-  
-      await user.save();
-  
-      //Create reset url to email to provided email
-      const resetUrl = `http://localhost:5000/user/reset/${resetToken}`;
-  
-      // HTML Message
-      const message = `
-        <h1>You have requested a password reset</h1>
-        <p>Please use the following link to reset your password:</p>
-        <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
-      `;
-  
-      try{
-        await sendEmail({
-          to: user.email,
-          subject: "Password Reset Request",
-          text: message,
-        });
-
-        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
-
-      }catch(err){
-        console.log(err);
-  
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-  
-        await user.save();
-
-        res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
-      }
-    } catch (err) {
-      return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
-    }
-});
-
 //Reset Password Endpoint for Forgotten Passwords
 router.put('/reset/:resetToken', async(req, res) => {
     //Compares token in URL params to hashed token
@@ -445,11 +393,7 @@ router.put('/verify', async(req, res) => {
         const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
         const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
 
-        console.log("New Token is:");
-        console.log(verificationToken);
-        //user.resetPasswordToken = verificationToken;
-        console.log("Old Token is:");
-        //console.log(user.resetPasswordToken);
+        user.resetPasswordToken = verificationToken;
         user.save();
       
         //Creates verify url to email to provided email
@@ -479,7 +423,6 @@ router.put('/verify', async(req, res) => {
     }
 });
      
-
 /*---------------------------------------------------*/
 //                   Friend APIs
 /*---------------------------------------------------*/
