@@ -29,6 +29,9 @@ function Login()
             var res = JSON.parse(await response.text());
             if (!res.message.msgError)
             {
+                //const responsed = await fetch(getOtherPath(), {method:'GET',credentials: 'include',headers:{'Content-Type':'application/json'}});
+                //var resed = JSON.parse(await responsed.text());
+                //alert(resed.user.display_name);
                 //alert("access_token=" + res.token);
                 //document.cookie = "access_token=" + res.token;
                 //localStorage.setItem('token', res.token);
@@ -55,7 +58,9 @@ function Login()
                     </Button>
                 </div>
                 <div class="continue-as-guest">Continue As Guest</div>
-                <div class="dont-have-an-account">Don’t have an account?</div>
+                <div class="dont-have-an-account">
+                    <Link to={'register'}>Don’t have an account?</Link>
+                </div>
                 <div class="rectangle-58">
                     <Form>
                         <Form.Group class="formElement">

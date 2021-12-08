@@ -7,6 +7,12 @@ import './home-page.css';
 import './create-new-playlist.css';
 import './edit-playlist.css';
 import './add-to-an-existing-playlist.css';
+import './profile.css';
+import './registration.css';
+import './redirect-page-after-email-verification.css';
+import './recommend-songs.css';
+import './list-of-recommended-songs.css';
+import './friends.css';
 import './styleguide.css';
 import './globals.css';
 
