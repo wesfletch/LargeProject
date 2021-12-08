@@ -12,6 +12,8 @@ import AddSongsPage from './pages/AddSongsPage';
 import ProfilePage from './pages/ProfilePage';
 import EmailPage from './pages/EmailPage';
 import FavPage from './pages/FavPage';
+import RecommendPage from './pages/RecommendPage';
+import RecListPage from './pages/RecListPage';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -26,6 +28,8 @@ ReactDOM.render(
         <Route path="profile" element={<ProfilePage />} />
         <Route path="email" element={<EmailPage />} />
         <Route path="fav" element={<FavPage />} />
+        <Route path="rec" element={<RecommendPage />} />
+        <Route path="recList" element={<RecListPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,

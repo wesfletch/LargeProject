@@ -10,6 +10,8 @@ import './add-to-an-existing-playlist.css';
 import './profile.css';
 import './registration.css';
 import './redirect-page-after-email-verification.css';
+import './recommend-songs.css';
+import './list-of-recommended-songs.css';
 import './styleguide.css';
 import './globals.css';
 

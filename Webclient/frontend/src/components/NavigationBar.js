@@ -12,6 +12,10 @@ function NavigationBar()
     {
         window.location.href = '/profile';
     };
+    const goRecommend = async event =>
+    {
+        window.location.href = '/rec';
+    };
     function getPath()
     {
         if (process.env.NODE_ENV === 'production')
@@ -57,7 +61,11 @@ function NavigationBar()
                     Create New Playlist
                 </Button>
             </div>
-            <div class="recommend-songs oswald-normal-white-17px">Recommend Songs</div>
+            <div class="profile oswald-normal-white-17px">
+                <Button variant='welcomeBtn' size="biggish" onClick={goRecommend}>
+                    Recommend Songs
+                </Button>
+            </div>
             <div class="friends oswald-normal-white-17px">Friends</div>
             <div class="profile oswald-normal-white-17px">
                 <Button variant='welcomeBtn' size="biggish" onClick={goProfile}>
