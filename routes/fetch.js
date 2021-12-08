@@ -282,8 +282,6 @@ spotifyRouter.post("/recspipe", async(req, res) => {
                 seed_genres: allgenres,
                 seed_tracks: track_ids,
                 limit: 10, 
-            limit: 10, 
-                limit: 10, 
                 market: "US"
             }
     
