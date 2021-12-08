@@ -15,6 +15,7 @@ const _ = require('underscore');
 const authorized = passport.authenticate('jwt',{session : false})
 require("dotenv").config({path:'../.env'});
 
+const path = require('path');
 
 const signToken = userID =>{
     return JWT.sign({
@@ -55,6 +56,7 @@ router.post('/register',(req,res)=>{
         else{  
             //creates verification Token 
             const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
+            console.log(verifyToken);
             const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
 
             console.log("VerifyToken: " + verifyToken)
@@ -76,7 +78,7 @@ router.post('/register',(req,res)=>{
             //Sends verification email
             try{
                 //Create reset url to email to provided email
-                const verifyUrl = `https://poosd-f2021-11.herokuapp.com/user/verify/${verifyToken}`;
+                const verifyUrl = `https://poosd-f2021-11.herokuapp.com/users/verify/?verifyToken=${verifyToken}`;
 
                 // HTML Message
                 const message = `
@@ -319,6 +321,45 @@ router.post('/search/users', authorized, (req, res) =>{
     });
 });
 
+router.get('/verify/', async(req, res) => 
+{
+    //Compares token in URL params to hashed token
+    const verificationToken = crypto
+        .createHash(process.env.HASH)
+        .update(req.query.verifyToken)
+        .digest(process.env.DIGEST);
+
+    console.log('verification' + req.query.verifyToken);
+    console.log('verification' + verificationToken)
+
+    try 
+    {
+        const user = await User.findOne({resetPasswordToken: verificationToken});
+
+        if (!user) 
+        {
+            return res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
+        }
+
+        user.verificationToken = true;
+        user.resetPasswordToken = undefined;
+
+        await user.save();
+        // return res.status(200).json({message : {msgBody : "User's Email Successfully Verified.", msgError: false}});
+        const message = `
+        <h1>Email Verified!</h1>
+        `;
+
+        console.log(path.resolve(__dirname, '../Webclient', 'frontend', 'build', 'index.html'));
+        res.sendFile(path.resolve(__dirname, '../Webclient', 'frontend', 'build', 'index.html'));
+    } 
+    catch (err) 
+    {
+        console.log(err);
+        return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
+    }
+});
+
 //Verify Email Endpoint
 router.put('/verify/:verifyToken', async(req, res) => {
     //Compares token in URL params to hashed token
@@ -370,7 +411,7 @@ router.put('/verifytoken', async(req, res) => {
 
 });
 
-//Resend verification email
+// Resend verification email
 router.put('/verify', async(req, res) => {
 
     //Takes In User's Email
@@ -396,31 +437,35 @@ router.put('/verify', async(req, res) => {
         user.resetPasswordToken = verificationToken;
         await user.save();
 
-        //Creates verify url to email to provided email
+        // Creates verify url to email to provided email
         const verifyUrl = `https://poosd-f2021-11.herokuapp.com/users/verify/${verifyToken}`;
-  
+                
         // HTML Message
         const message = `
-        <h1>Thank you for signing up with ShareTunes!</h1>
-        <p>Please use the following link to verify your email:</p>
-        <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
-      `;
-    
-      try{
-        await sendEmail({
-        to: email,
-        subject: "ShareTunes Email Verification",
-        text: message,
-        });
+            <h1>Thank you for signing up with ShareTunes!</h1>
+            <p>Please use the following link to verify your email:</p>
+            <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
+        `;
 
-        return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+        try
+        {
+            await sendEmail({
+                to: email,
+                subject: "ShareTunes Email Verification",
+                text: message,
+            });
 
-        }catch(err){
+                return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+
+
+        }
+        catch(err){
             return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
         }
-    }).clone()
+    }).clone();
 });
      
+
 /*---------------------------------------------------*/
 //                   Friend APIs
 /*---------------------------------------------------*/
@@ -771,7 +816,6 @@ router.delete('/fav_artist/:id', authorized, (req,res) =>
             return res.status(200).json({message : {msgBody : "Successfully removed fav_artist", msgError: false}});
         }
     });
-
 });
      
 
