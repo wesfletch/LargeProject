@@ -15,6 +15,7 @@ const _ = require('underscore');
 const authorized = passport.authenticate('jwt',{session : false})
 require("dotenv").config({path:'../.env'});
 
+const path = require('path');
 
 const signToken = userID =>{
     return JWT.sign({
@@ -55,6 +56,7 @@ router.post('/register',(req,res)=>{
         else{  
             //creates verification Token 
             const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
+            console.log(verifyToken);
             const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
             //Saves the new user
             const newUser = new User({
@@ -72,7 +74,7 @@ router.post('/register',(req,res)=>{
             //Sends verification email
             try{
                 //Create reset url to email to provided email
-                const verifyUrl = `https://poosd-f2021-11.herokuapp.com/user/verify/${verifyToken}`;
+                const verifyUrl = `https://poosd-f2021-11.herokuapp.com/users/verify/?verifyToken=${verifyToken}`;
 
                 // HTML Message
                 const message = `
@@ -314,46 +316,53 @@ router.post('/search/users', passport.authenticate('jwt', {session : false}), (r
     });
 });
 
-//Reset Password Endpoint for Forgotten Passwords
-router.put('/reset/:resetToken', async(req, res) => {
+router.get('/verify/', async(req, res) => 
+{
     //Compares token in URL params to hashed token
-    const resetPasswordToken = crypto
-    .createHash(process.env.HASH)
-    .update(req.params.resetToken)
-    .digest(process.env.DIGEST);
+    const verificationToken = crypto
+        .createHash(process.env.HASH)
+        .update(req.query.verifyToken)
+        .digest(process.env.DIGEST);
 
-    try {
-    const user = await User.findOne({
-        resetPasswordToken,
-        resetPasswordExpire: { $gt: Date.now() },
-    });
+    console.log('verification' + req.query.verifyToken);
+    console.log('verification' + verificationToken)
 
-    if (!user) {
-        res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: "N/A"}});
+    try 
+    {
+        const user = await User.findOne({resetPasswordToken: verificationToken});
+
+        if (!user) 
+        {
+            return res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
+        }
+
+        user.verificationToken = true;
+        user.resetPasswordToken = undefined;
+
+        await user.save();
+        // return res.status(200).json({message : {msgBody : "User's Email Successfully Verified.", msgError: false}});
+        const message = `
+        <h1>Email Verified!</h1>
+        `;
+
+        console.log(path.resolve(__dirname, '../Webclient', 'frontend', 'build', 'index.html'));
+        res.sendFile(path.resolve(__dirname, '../Webclient', 'frontend', 'build', 'index.html'));
+    } 
+    catch (err) 
+    {
+        console.log(err);
+        return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
     }
-    //Confirms that both passwords match
-    if(!Validator.equals(req.body.password,req.body.password2)){
-        return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
-    }
 
-    user.password = req.body.password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save();
-    res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: "N/A"}});
-    } catch (err) {
-        res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
-    }
 });
 
 //Verify Email Endpoint
 router.put('/verify/:verifyToken', async(req, res) => {
     //Compares token in URL params to hashed token
     const verificationToken= crypto
-    .createHash(process.env.HASH)
-    .update(req.params.verifyToken)
-    .digest(process.env.DIGEST);
+        .createHash(process.env.HASH)
+        .update(req.params.verifyToken)
+        .digest(process.env.DIGEST);
     console.log(verificationToken)
     try {
         const user = await User.findOne({resetPasswordToken: verificationToken});
@@ -373,7 +382,7 @@ router.put('/verify/:verifyToken', async(req, res) => {
 
 });
 
-//Resend verification email
+// Resend verification email
 router.put('/verify', async(req, res) => {
 
     //Takes In User's Email
@@ -383,46 +392,54 @@ router.put('/verify', async(req, res) => {
         return res.status(401).json({message : {msgBody : "Error: Please provide an email address.", msgError: true}});
     }
   
-    try{ //Checks if user exists
-      const user = await User.findOne({ email });
-      if(!user){
-        return res.status(400).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
-      }
+    try
+    { 
+        //Checks if user exists
+        const user = await User.findOne({ email });
+        if(!user)
+        {
+            return res.status(400).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
+        }
   
-        //Gets verify Token
+        // Gets verify Token
         const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
         const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
 
         user.resetPasswordToken = verificationToken;
+        console.log('TOKEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' + verifyToken);
         user.save();
       
-        //Creates verify url to email to provided email
+        // Creates verify url to email to provided email
         const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
   
-      // HTML Message
-      const message = `
-        <h1>Thank you for signing up with ShareTunes!</h1>
-        <p>Please use the following link to verify your email:</p>
-        <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
-      `;
-  
-      try{
-            await sendEmail({
-            to: email,
-            subject: "ShareTunes Email Verification",
-            text: message,
-            });
+        // HTML Message
+        const message = `
+            <h1>Thank you for signing up with ShareTunes!</h1>
+            <p>Please use the following link to verify your email:</p>
+            <a href=${verifyUrl} clicktracking=off>${verifyUrl}</a>
+        `;
 
-            return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+        try
+        {
+                await sendEmail({
+                to: email,
+                subject: "ShareTunes Email Verification",
+                text: message,
+                });
+
+                return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
 
         }catch(err){
             return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
         }
-    }catch(err){
+    }
+    catch(err)
+    {
         return res.status(501).json({message : {msgBody : "Error: Stetting verification.", msgError: err}});
     }
 });
      
+
 /*---------------------------------------------------*/
 //                   Friend APIs
 /*---------------------------------------------------*/
@@ -773,7 +790,6 @@ router.delete('/fav_artist/:id', authorized, (req,res) =>
             return res.status(200).json({message : {msgBody : "Successfully removed fav_artist", msgError: false}});
         }
     });
-
 });
      
 
