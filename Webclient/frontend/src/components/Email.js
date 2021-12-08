@@ -31,7 +31,7 @@ function Email()
                 //alert("access_token=" + res.token);
                 //document.cookie = "access_token=" + res.token;
                 //localStorage.setItem('token', res.token);
-                window.location.href = '/home';
+                window.location.href = '/';
             }
         }
         catch(e)
