@@ -29,6 +29,9 @@ function Login()
             var res = JSON.parse(await response.text());
             if (!res.message.msgError)
             {
+                //const responsed = await fetch(getOtherPath(), {method:'GET',credentials: 'include',headers:{'Content-Type':'application/json'}});
+                //var resed = JSON.parse(await responsed.text());
+                //alert(resed.user.display_name);
                 //alert("access_token=" + res.token);
                 //document.cookie = "access_token=" + res.token;
                 //localStorage.setItem('token', res.token);
