@@ -218,67 +218,93 @@ spotifyRouter.post("/recspipe", async(req, res) => {
     var artist_ids = [];
     var allgenres = [];
 
+    // check if we have any of these fields
+    const hasTracks = req.body.hasOwnProperty('tracks');
+    const hasArtists = req.body.hasOwnProperty('artists');
+    const hasGenres = req.body.hasOwnProperty('genres');
+
     try{
-        if(req.body.tracks.length != 0){
-            await Promise.all(
-                req.body.tracks.map(async(track) =>{
-                    var data = await spotifyApi.searchTracks(track,{limit: 1});
-                    var id = await data.body.tracks.items[0].id
-                    track_ids.push(id);
-                })
-            )
+
+        // if this field was provided
+        if (hasTracks)
+        {
+            if(req.body.tracks.length != 0){
+                await Promise.all(
+                    req.body.tracks.map(async(track) =>{
+                        var data = await spotifyApi.searchTracks(track,{limit: 1});
+                        var id = await data.body.tracks.items[0].id
+                        track_ids.push(id);
+                    })
+                )
+            }
         }
-
-        if(req.body.artists.length != 0){
-            await Promise.all(
-                req.body.artists.map(async(artist) =>{
-                    var data2 = await spotifyApi.searchArtists(artist,{limit: 1})
-                    var id = await data2.body.artists.items[0].id
-                    artist_ids.push(id);
-                })
-            )
+        // if this field was provided
+        if (hasArtists)
+        {
+            if(req.body.artists.length != 0){
+                await Promise.all(
+                    req.body.artists.map(async(artist) =>{
+                        var data2 = await spotifyApi.searchArtists(artist,{limit: 1})
+                        var id = await data2.body.artists.items[0].id
+                        artist_ids.push(id);
+                    })
+                )
+            }
         }
-
-        if(req.body.genres.length != 0){
-            var data3 = await spotifyApi.getAvailableGenreSeeds();
-            await Promise.all(
-                req.body.genres.map(async(genre) =>{
-                    var match = await stringSimilarity.findBestMatch(genre, data3.body.genres);
-                    console.log("Best Match: " + match.bestMatch.target);
-                    allgenres.push(match.bestMatch.target)
-                })
-            )
-        };
-        
-        console.log(artist_ids)
-        console.log(allgenres)
-        console.log(track_ids)
-
-        var results =[];
-        var seeds = {
-            seed_artists: artist_ids,
-            seed_genres: allgenres,
-            seed_tracks: track_ids,
-            limit: 10, 
-            market: "US"
+        // if this field was provided
+        if(hasGenres)
+        {
+            if(req.body.genres.length != 0){
+                var data3 = await spotifyApi.getAvailableGenreSeeds();
+                await Promise.all(
+                    req.body.genres.map(async(genre) =>{
+                        var match = await stringSimilarity.findBestMatch(genre, data3.body.genres);
+                        console.log("Best Match: " + match.bestMatch.target);
+                        allgenres.push(match.bestMatch.target)
+                    })
+                )
+            };
         }
-
-        spotifyApi.getRecommendations(seeds).then((data) => {
-            data.body.tracks.forEach((track, i) => {
-                results.push({
-                    "name": track.name,
-                    "id": track.id,
-                    "artist": track.artists[0]?.name,
-                    "preview": track.preview_url,
-                    "url_link": track.external_urls.spotify
+        // if we didn't get any fields, don't try to request anything
+        if (!hasGenres && !hasArtists && !hasTracks)
+        {
+            return res.status(500).json({message : {msgBody : "No seeds provided", msgError : true}});
+        }
+        else
+        {
+            console.log(artist_ids)
+            console.log(allgenres)
+            console.log(track_ids)
+    
+            var results =[];
+            var seeds = {
+                seed_artists: artist_ids,
+                seed_genres: allgenres,
+                seed_tracks: track_ids,
+                limit: 10, 
+                market: "US"
+            }
+    
+            spotifyApi.getRecommendations(seeds).then((data) => {
+                data.body.tracks.forEach((track, i) => {
+                    results.push({
+                        "name": track.name,
+                        "id": track.id,
+                        "artist": track.artists[0]?.name,
+                        "preview": track.preview_url,
+                        "url_link": track.external_urls.spotify
+                    });
                 });
-            });
-            console.log("Recommendations found");
-            return res.status(200).json(results);
-        })
+                console.log("Recommendations found");
+                return res.status(200).json(results);
+            })
+        }
 
-    }catch(err){
+
+    }
+    catch(err){
         if(err){    
+            console.log(err);
             return res.json({message : {msgBody : "Error compiling recommendation seeds.", msgError : err}});
         }
     };
