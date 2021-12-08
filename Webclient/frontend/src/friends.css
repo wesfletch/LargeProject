@@ -1,0 +1,142 @@
+/* screen - friends */
+
+.friends {
+  align-items: flex-start;
+  background-color: var(--white);
+  display: flex;
+  width: 1440px;
+}
+
+.friends .overlap-group-container {
+  align-items: center;
+  background-image: url(./img/shutterstock-1222007797-1@1x.png);
+  background-position: 50% 50%;
+  background-size: cover;
+  display: flex;
+  height: 1024px;
+  min-width: 1440px;
+  padding: 27px 0;
+}
+
+.friends .overlap-group2 {
+  height: 721px;
+  margin-bottom: 123.0px;
+  position: relative;
+  width: 313px;
+}
+
+.friends .sidebar {
+  background-color: var(--cod-gray);
+  height: 721px;
+  left: 0;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  width: 301px;
+}
+
+.friends .menu {
+  align-items: center;
+  display: flex;
+  height: 385px;
+  left: 0;
+  min-width: 313px;
+  position: absolute;
+  top: 110px;
+}
+
+.friends .marker {
+  height: 42px;
+  margin-top: 87.0px;
+  width: 6px;
+}
+
+.friends .flex-col {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  margin-left: 155px;
+  min-height: 385px;
+  width: 140px;
+}
+
+.friends .place {
+  letter-spacing: 0;
+  min-height: 25px;
+  width: 43px;
+}
+
+.friends .create-new-playlist {
+  letter-spacing: 0;
+  margin-top: 47px;
+  min-height: 25px;
+  width: 140px;
+}
+
+.friends .recommend-songs {
+  letter-spacing: 0;
+  margin-top: 47px;
+  min-height: 25px;
+  width: 134px;
+}
+
+.friends .friends-1 {
+  letter-spacing: 0;
+  margin-top: 47px;
+  min-height: 25px;
+  width: 52px;
+}
+
+.friends .profile {
+  letter-spacing: 0;
+  margin-top: 47px;
+  min-height: 25px;
+  width: 47px;
+}
+
+.friends .logout {
+  letter-spacing: 0;
+  margin-top: 47px;
+  min-height: 25px;
+  width: 49px;
+}
+
+.friends .overlap-group1 {
+  align-items: flex-start;
+  align-self: flex-end;
+  background-color: var(--white-2);
+  border-radius: 10px;
+  box-shadow: 0px 4px 4px #00000040;
+  display: flex;
+  flex-direction: column;
+  margin-left: 1px;
+  min-height: 907px;
+  padding: 158px 105.0px;
+  width: 1089px;
+}
+
+.friends .friends-2 {
+  -webkit-text-stroke: 1px var(--black);
+  letter-spacing: 0;
+  min-height: 51px;
+  width: 399px;
+}
+
+.friends .rectangle-50 {
+  background-color: var(--lilac-bush);
+  border-radius: 12px;
+  height: 4px;
+  margin-left: 3.0px;
+  margin-top: 6px;
+  width: 68px;
+}
+
+.friends .rectangle-55 {
+  align-self: center;
+  background-color: var(--licorice);
+  border-radius: 5px;
+  height: 496px;
+  margin-right: 1.0px;
+  margin-top: 31px;
+  width: 876px;
+}

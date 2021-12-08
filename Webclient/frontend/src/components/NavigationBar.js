@@ -16,6 +16,10 @@ function NavigationBar()
     {
         window.location.href = '/rec';
     };
+    const goFriends = async event =>
+    {
+        window.location.href = '/friends';
+    };
     function getPath()
     {
         if (process.env.NODE_ENV === 'production')
@@ -66,7 +70,11 @@ function NavigationBar()
                     Recommend Songs
                 </Button>
             </div>
-            <div class="friends oswald-normal-white-17px">Friends</div>
+            <div class="profile oswald-normal-white-17px">
+                <Button variant='welcomeBtn' size="biggish" onClick={goFriends}>
+                    Friends
+                </Button>
+            </div>
             <div class="profile oswald-normal-white-17px">
                 <Button variant='welcomeBtn' size="biggish" onClick={goProfile}>
                     Profile

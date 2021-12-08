@@ -14,6 +14,8 @@ import EmailPage from './pages/EmailPage';
 import FavPage from './pages/FavPage';
 import RecommendPage from './pages/RecommendPage';
 import RecListPage from './pages/RecListPage';
+import FriendsPage from './pages/FriendsPage';
+import AddFriendPage from './pages/AddFriendPage';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -30,6 +32,8 @@ ReactDOM.render(
         <Route path="fav" element={<FavPage />} />
         <Route path="rec" element={<RecommendPage />} />
         <Route path="recList" element={<RecListPage />} />
+        <Route path="friends" element={<FriendsPage />} />
+        <Route path="addFriend" element={<AddFriendPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
