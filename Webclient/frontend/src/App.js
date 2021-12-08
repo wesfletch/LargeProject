@@ -13,6 +13,7 @@ import './redirect-page-after-email-verification.css';
 import './recommend-songs.css';
 import './list-of-recommended-songs.css';
 import './friends.css';
+import './reset-password.css';
 import './styleguide.css';
 import './globals.css';
 

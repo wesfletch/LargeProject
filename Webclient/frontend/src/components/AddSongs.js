@@ -52,7 +52,7 @@ function AddSongs()
                 var res = JSON.parse(await response.text());
                 if (!res.message.msgError)
                 {
-                    alert("success");
+                    //alert("success");
                 }
             }
             catch(ee)

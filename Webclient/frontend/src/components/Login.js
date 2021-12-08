@@ -57,9 +57,11 @@ function Login()
                         Sign In
                     </Button>
                 </div>
-                <div class="continue-as-guest">Continue As Guest</div>
+                <div class="continue-as-guest">
+                <Link to={'register'}>Don’t have an account?</Link>
+                </div>
                 <div class="dont-have-an-account">
-                    <Link to={'register'}>Don’t have an account?</Link>
+                    <Link to={'reset'}>Forgot Password?</Link>
                 </div>
                 <div class="rectangle-58">
                     <Form>

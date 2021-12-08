@@ -16,6 +16,9 @@ import RecommendPage from './pages/RecommendPage';
 import RecListPage from './pages/RecListPage';
 import FriendsPage from './pages/FriendsPage';
 import AddFriendPage from './pages/AddFriendPage';
+import ResetPage from './pages/ResetPage';
+import FinishPage from './pages/FinishPage';
+
 
 ReactDOM.render(
   <React.StrictMode>
@@ -34,6 +37,8 @@ ReactDOM.render(
         <Route path="recList" element={<RecListPage />} />
         <Route path="friends" element={<FriendsPage />} />
         <Route path="addFriend" element={<AddFriendPage />} />
+        <Route path="reset" element={<ResetPage />} />
+        <Route path="finish" element={<FinishPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
