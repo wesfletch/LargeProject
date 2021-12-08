@@ -58,6 +58,10 @@ router.post('/register',(req,res)=>{
             const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
             console.log(verifyToken);
             const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
+
+            console.log("VerifyToken: " + verifyToken)
+            console.log("verificationToken: " + verificationToken)
+
             //Saves the new user
             const newUser = new User({
                 display_name: req.body.display_name,
@@ -110,28 +114,29 @@ router.post('/login',async (req,res)=>{
         res.status(400).json({message : {msgBody : "Error: Please provide an email and password.", msgError: true}});
     };
 
-    //Check that user exists by email
-    const user = await User.findOne({email});
-
-    //Checks if user's email address is veified
-    if(user.verificationToken == false){
-        return res.status(402).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
-    }
-
-    if(!user){
-        return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
-    }
-
-    //Check that password match
-    const isMatch = await user.matchPassword(password);
-
-    if(!isMatch){
-        return res.status(401).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
-    }
-
-    const token = signToken(user._id);
-    res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
-    res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: false}});
+    User.findOne({email: req.body.email}, async(err,user)=>{ 
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error searching the database.", msgError: err}});
+        }
+        if(!user){ //Checks if email is in database
+            return res.status(404).json({message : {msgBody : "Invalid credentials", msgError: true}});
+        }
+        
+        //Check that password match
+        const isMatch = await user.matchPassword(password);
+        if(!isMatch){
+            return res.status(404).json({message : {msgBody : "Error: Invalid credentials.", msgError: true}});
+        }
+        
+        //Checks if user's email address is veified
+        if(user.verificationToken == false){
+            return res.status(402).json({message : {msgBody : "Error: Please verify your email before logging in.", msgError: true}});
+        }
+        
+        const token = signToken(user._id);
+        res.cookie('access_token',token,{httpOnly: true, sameSite:true}); 
+        res.status(200).json({message : {msgBody : "Successfully logged in.", msgError: false}});
+    });
 });
 
 //Logout endpoint, clears auth cookie
@@ -214,50 +219,55 @@ router.post('/forgot', async(req, res) => {
     //Takes In User's Email
     const email = req.body.email.toLowerCase();
   
-    try { //Checks if user exists
-      const user = await User.findOne({ email });
+    //Checks if email and password is provided
+    if(!email){
+        res.status(400).json({message : {msgBody : "Error: Please provide an email.", msgError: true}});
+    };
+
+    User.findOne({email}, async(err,user)=>{ 
+        if(err){
+            return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
+        }
+
+        if (!user) {
+            return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
+        }
+
+        //Gets Reset Token
+        const resetToken = user.getResetPasswordToken();
+
+        await user.save();
   
-      if (!user) {
-        return res.status(400).json({message : {msgBody : "Error: Email could not be sent.", msgError: true}});
-      }
+        //Create reset url to email to provided email
+        const resetUrl = `https://poosd-f2021-11.herokuapp.com/user/reset/${resetToken}`;
   
-      //Gets Reset Token
-      const resetToken = user.getResetPasswordToken();
-  
-      await user.save();
-  
-      //Create reset url to email to provided email
-      const resetUrl = `http://localhost:5000/user/reset/${resetToken}`;
-  
-      // HTML Message
-      const message = `
+        // HTML Message
+        const message = `
         <h1>You have requested a password reset</h1>
         <p>Please use the following link to reset your password:</p>
         <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
-      `;
-  
-      try{
-        await sendEmail({
-          to: user.email,
-          subject: "Password Reset Request",
-          text: message,
-        });
+        `;
 
-        res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
+        try{
+            await sendEmail({
+            to: user.email,
+            subject: "Password Reset Request",
+            text: message,
+            });
 
-      }catch(err){
-        console.log(err);
-  
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-  
-        await user.save();
+            return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
 
-        res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
-      }
-    } catch (err) {
-      return res.status(501).json({message : {msgBody : "An Error Occured.", msgError: err}});
-    }
+        }catch(err){
+            console.log(err);
+  
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+  
+            await user.save();
+
+            return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
+        }
+    })
 });
 
 //Reset Password Endpoint for Forgotten Passwords
@@ -268,34 +278,29 @@ router.put('/reset/:resetToken', async(req, res) => {
     .update(req.params.resetToken)
     .digest(process.env.DIGEST);
 
-    try {
-    const user = await User.findOne({
-        resetPasswordToken,
-        resetPasswordExpire: { $gt: Date.now() },
-    });
+    await User.findOne({resetPasswordToken,resetPasswordExpire: {$gt: Date.now()}}, async(err,user)=>{
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
+        }
+        if(!user){
+            return res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: "N/A"}});
+        }
+        //Confirms that both passwords match
+        if(!Validator.equals(req.body.password,req.body.password2)){
+            return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
+        }
+        user.password = req.body.password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
 
-    if (!user) {
-        res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: "N/A"}});
-    }
-    //Confirms that both passwords match
-    if(!Validator.equals(req.body.password,req.body.password2)){
-        return res.status(401).json({message : {msgBody : "Error: Passwords must match.", msgError: "N/A"}});
-    }
-
-    user.password = req.body.password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save();
-    res.status(200).json({message : {msgBody : "Password Successfully Updated.", msgError: "N/A"}});
-    } catch (err) {
-        res.status(500).json({message : {msgBody : "Error: Unable to update password", msgError: err}});
-    }
+        await user.save();
+        res.status(200).json({message : {msgBody : "Password Successfully Updated.", resetToken: req.params.resetToken, msgError: "N/A"}});
+    }).clone();  
 
 });
 
 // partial text search of User schema $text index
-router.post('/search/users', passport.authenticate('jwt', {session : false}), (req, res) =>{
+router.post('/search/users', authorized, (req, res) =>{
     const query = req.body.query;
     const limit = req.body.limit;
     var page = Math.max(0, req.body.page);
@@ -353,21 +358,47 @@ router.get('/verify/', async(req, res) =>
         console.log(err);
         return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
     }
-
 });
 
 //Verify Email Endpoint
 router.put('/verify/:verifyToken', async(req, res) => {
     //Compares token in URL params to hashed token
     const verificationToken= crypto
-        .createHash(process.env.HASH)
-        .update(req.params.verifyToken)
-        .digest(process.env.DIGEST);
-    console.log(verificationToken)
-    try {
-        const user = await User.findOne({resetPasswordToken: verificationToken});
+    .createHash(process.env.HASH)
+    .update(req.params.verifyToken)
+    .digest(process.env.DIGEST);
+    
+    await User.findOne({resetPasswordToken: verificationToken}, async(err,user)=>{
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
+        }
+        if(!user){
+            return res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
+        }
 
-        if (!user) {
+        user.verificationToken = true;
+        user.resetPasswordToken = undefined;
+
+        await user.save();
+        return res.status(200).json({message : {msgBody : "User's Email Successfully Verified.", token: req.params.verifyToken, msgError: false}});
+    }).clone()
+
+});
+
+router.put('/verifytoken', async(req, res) => {
+
+    console.log(req.body.verifyToken)
+    //Compares token in URL params to hashed token
+    const verificationToken= crypto
+    .createHash(process.env.HASH)
+    .update(req.body.verifyToken)
+    .digest(process.env.DIGEST);
+    
+    await User.findOne({resetPasswordToken: verificationToken}, async(err,user)=>{
+        if(err){
+            return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
+        }
+        if(!user){
             return res.status(400).json({message : {msgBody : "Error: Invalid Token.", msgError: true}});
         }
 
@@ -376,9 +407,7 @@ router.put('/verify/:verifyToken', async(req, res) => {
 
         await user.save();
         return res.status(200).json({message : {msgBody : "User's Email Successfully Verified.", msgError: false}});
-    } catch (err) {
-        return res.status(500).json({message : {msgBody : "Error: Unable to verify user.", msgError: err}});
-    }
+    }).clone()
 
 });
 
@@ -392,26 +421,25 @@ router.put('/verify', async(req, res) => {
         return res.status(401).json({message : {msgBody : "Error: Please provide an email address.", msgError: true}});
     }
   
-    try
-    { 
-        //Checks if user exists
-        const user = await User.findOne({ email });
-        if(!user)
-        {
+    await User.findOne({email}, async(err,user)=>{
+        if(err){
+            return res.status(501).json({message : {msgBody : "Error setting verification.", msgError: err}});
+        }
+        
+        if(!user){
             return res.status(400).json({message : {msgBody : "Error: Invalid email.", msgError: true}});
         }
-  
-        // Gets verify Token
+
+        //Gets verify Token
         const verifyToken = crypto.randomBytes(20).toString(process.env.DIGEST);
         const verificationToken = crypto.createHash(process.env.HASH).update(verifyToken).digest(process.env.DIGEST);
 
         user.resetPasswordToken = verificationToken;
-        console.log('TOKEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' + verifyToken);
-        user.save();
-      
+        await user.save();
+
         // Creates verify url to email to provided email
-        const verifyUrl = `http://localhost:5000/user/verify/${verifyToken}`;
-  
+        const verifyUrl = `https://poosd-f2021-11.herokuapp.com/users/verify/${verifyToken}`;
+                
         // HTML Message
         const message = `
             <h1>Thank you for signing up with ShareTunes!</h1>
@@ -421,22 +449,20 @@ router.put('/verify', async(req, res) => {
 
         try
         {
-                await sendEmail({
+            await sendEmail({
                 to: email,
                 subject: "ShareTunes Email Verification",
                 text: message,
-                });
+            });
 
                 return res.status(200).json({message : {msgBody : "Email successfully sent.", msgError: false}});
 
-        }catch(err){
+
+        }
+        catch(err){
             return res.status(500).json({message : {msgBody : "Error sending email.", msgError: err}});
         }
-    }
-    catch(err)
-    {
-        return res.status(501).json({message : {msgBody : "Error: Stetting verification.", msgError: err}});
-    }
+    }).clone();
 });
      
 

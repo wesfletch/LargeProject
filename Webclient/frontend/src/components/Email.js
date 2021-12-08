@@ -47,7 +47,7 @@ function Email()
             <div class="registration screen">
                 <div class="overlap-group1">
                 <div class="overlap-group">
-                    <img class="car-3075497_1280-1" src="img/car-3075497-1280-1@1x.png" />
+                    <img class="car-3075497_1280-1"/>
                     <div class="background border-1px-black"></div>
                 </div>
                 <div class="copyright oswald-normal-white-17px">©2020 ACME LLC.</div>
