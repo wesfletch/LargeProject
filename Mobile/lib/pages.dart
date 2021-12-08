@@ -23,7 +23,7 @@ class LoginPage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
                   child: RichText(
                       text: TextSpan(
-                          text: "<appname>",
+                          text: "",
                           style: Theme.of(context).textTheme.headline2))))]),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -115,15 +115,17 @@ class ForgotPasswordPage extends StatefulWidget  {
 class _ForgotPasswordState extends State<ForgotPasswordPage>  {
   String email = "";
 
-  void resetPassword(String email) async {
-    // TODO: Send password reset request once apis are up.
+  Future<void> resetPassword(String email, BuildContext context) async {
     var body = {"email": email};
     var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/forgot"), headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     }, body: jsonEncode(body));
-    print("here");
-    print(response.toString());
-    print(response.body);
+    return showDialog<void> (context: context, barrierDismissible: false, builder: (BuildContext context) {
+      return const AlertDialog(title: Center(child: Text("Password Reset Email Sent!")),
+        content: Text("To reset password, follow the link in the email."),
+        actions: [],
+      );
+    });
   }
 
   @override
@@ -148,7 +150,7 @@ class _ForgotPasswordState extends State<ForgotPasswordPage>  {
             child: Padding(
               padding: const EdgeInsets.all(10),
               child: ElevatedButton(
-                onPressed: () {resetPassword(email);},
+                onPressed: () {resetPassword(email, context);},
                 child: const Text("Reset Password"),
               ),
             ),
@@ -177,7 +179,7 @@ class _RegistrationPageState extends State<RegistrationPage>  {
     var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/register"), headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     }, body: jsonEncode(body));
-    if (response.statusCode == 201) {
+    if (response.statusCode == 201 || response.statusCode == 200) {
       return 0;
     }
     else if (response.statusCode == 400)  {
@@ -324,12 +326,12 @@ class RegistrationSuccessfulPage extends StatelessWidget  {
         Center(child: Padding(
           padding: const EdgeInsets.all(10),
           child: RichText(
-            text: TextSpan(
-                text: "Registration successful.\n\n Please watch for an email to confirm your email address.", style: Theme.of(context).textTheme.headline1), textAlign: TextAlign.center,
+            text: const TextSpan(
+                text: "Registration successful.\n\n Please watch for an email to confirm your email address.", style: TextStyle(fontSize: 30)), textAlign: TextAlign.center,
             )
           )
         ),
-        Padding(padding: const EdgeInsets.all(10), child: SizedBox(height: 60, width: 500, child: ElevatedButton(onPressed: () {Navigator.pop(context);}, child: const Text("Return to Sign In", style: TextStyle(fontSize: 30),))))
+        Padding(padding: const EdgeInsets.all(10), child: SizedBox(height: 50, width: 500, child: ElevatedButton(onPressed: () {Navigator.pop(context);}, child: const Text("Return to Sign In", style: TextStyle(fontSize: 20),))))
       ])
     );
   }
@@ -351,10 +353,33 @@ class _LandingPageState extends State<LandingPage>  {
   Widget? nav1;
   Widget? nav2;
   bool init = false;
+  Map<String, List> favorites = {"fav_artists": [], "fav_genres": [], "fav_tracks": []};
+
+  void getFavs(BuildContext context) async  {
+    var response = await http.get(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/getfavs"), headers: {"Cookie": 'access_token=${widget.usertoken}', 'Content-Type': 'application/json; charset=UTF-8',},);
+    var favMap = jsonDecode(response.body);
+    favorites = Map<String, List>.from(favMap);
+
+    if (favorites["fav_artists"]!.isEmpty && favorites["fav_genres"]!.isEmpty && favorites["fav_tracks"]!.isEmpty)  {
+      setState(() {
+        init = true;
+        page = 1;
+        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => FavoritesPage(accesstoken: widget.usertoken)));
+      });
+    }
+
+    else {
+      setState(() {
+        init = true;
+      });
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
     if (init == false) {
+      getFavs(context);
       init = true;
       nav1 = HomePage(accesstoken: widget.usertoken);
       nav2 = AccountPageList(usertoken: widget.usertoken, logout: widget.logout);
@@ -368,7 +393,7 @@ class _LandingPageState extends State<LandingPage>  {
         currentIndex: page,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: "Settings")
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile")
         ],
       ),
     );

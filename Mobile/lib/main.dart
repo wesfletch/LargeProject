@@ -46,14 +46,12 @@ class _RecsAppState extends State<RecsApp> {
       _loaded = true;
       // Try to login, if no worko, set user token to null
       var response = await http.get(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/authenticated"), headers: {"Cookie": 'access_token=$_userToken'});
-      print(response.body);
-      print(_userToken);
       if (response.statusCode != 200) {
         _userToken = null;
       }
     }
     else  {
-      print("Yikes");
+
     }
     setState(() {
       _loaded = true;
@@ -68,10 +66,12 @@ class _RecsAppState extends State<RecsApp> {
     if (response.statusCode == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var body = jsonDecode(response.body);
+      var sth = response.headers;
+      var tkn = sth["set-cookie"]!.split('; ')[0].split("=")[1];
       setState(() {
-        _userToken = body["token"];
+        _userToken = tkn;
         _loginFailed = false;
-        prefs.setString("userToken", body["token"]);
+        prefs.setString("userToken", tkn);
       });
     }
     else  {
@@ -139,7 +139,6 @@ class _RecsAppState extends State<RecsApp> {
             currPage,
           ],
       onPopPage: (route, result) {
-          print("Hello 3");
           if (route.didPop(result)) {
             return true;
           }
