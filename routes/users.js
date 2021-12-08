@@ -352,9 +352,6 @@ router.put('/verifytoken', async(req, res) => {
     .createHash(process.env.HASH)
     .update(req.body.verifyToken)
     .digest(process.env.DIGEST);
-
-    console.log("VerifyToken: " + req.body.verifyToken)
-    console.log("verificationToken: " + verificationToken)
     
     await User.findOne({resetPasswordToken: verificationToken}, async(err,user)=>{
         if(err){
