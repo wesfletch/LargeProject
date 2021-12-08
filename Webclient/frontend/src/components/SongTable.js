@@ -54,7 +54,8 @@ function SongTable()
         async function getPlaylists() {
             let response = await fetch(getOtherPath() + localStorage.getItem("playlist"), {method:'GET',credentials:'include',headers:{'Content-Type':'application/json'}});
             response = await response.json();
-            setPlaylists(response);
+            //alert(response.playlist.tracks[0].name);
+            setPlaylists(response.playlist.tracks);
         }
         getPlaylists();
     }, []);
@@ -66,7 +67,7 @@ function SongTable()
             const items = [];
             for (var i = 0; i < playlists.length; i++)
             {
-                var x = JSON.stringify(playlists[i]).replaceAll('"','');
+                var x = JSON.stringify(playlists[i].name).replaceAll('"','');
                 items.push(x);
             }
             setRows(items);
