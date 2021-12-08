@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {Form, Button} from 'react-bootstrap';
 import NavigationBar from '../components/NavigationBar';
+import FriendTable2 from '../components/FriendTable2';
 
 function Recommend()
 {
@@ -16,7 +17,10 @@ function Recommend()
             return 'http://localhost:5000/fetch/recspipe';
         }
     }
-
+    function doFriendRecommend()
+    {
+        window.location.href = '/recList';
+    }
     const doRecommend = async event =>
     {
         event.preventDefault();
@@ -58,9 +62,11 @@ function Recommend()
                     <div class="which-friend-would-y oswald-normal-black-20px">
                     Which friend would you like to collaborate with?
                     </div>
-                    <div class="rectangle-55-1"></div>
+                    <div class="rectangle-55-1">
+                        <FriendTable2/>
+                    </div>
                     <div class="recommend-songs-button">
-                        <Button variant='signInBtn' size="big">
+                        <Button variant='signInBtn' size="big" onClick={doFriendRecommend}>
                         Recommend Songs
                         </Button>
                     </div>
