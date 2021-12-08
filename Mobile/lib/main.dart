@@ -1,4 +1,9 @@
 
+import 'dart:convert';
+import 'dart:io';
+
+
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'pages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,33 +21,64 @@ class _RecsAppState extends State<RecsApp> {
   bool _loaded = false;
   String _username = "";
   String _password = "";
+  bool _loginFailed = false;
+
   @override
   void initState() {
     super.initState();
     _checkUserToken();
   }
 
+  void logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    setState(() {
+      _userToken = null;
+      Navigator.of(context).pop();
+    });
+  }
+
   void _checkUserToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // await prefs.clear();
     if (prefs.containsKey("userToken")) {
-      setState(() {
-        _userToken = prefs.getString("userToken");
-        _loaded = true;
-      });
+      _userToken = prefs.getString("userToken");
+      _loaded = true;
       // Try to login, if no worko, set user token to null
-      return;
+      var response = await http.get(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/authenticated"), headers: {"Cookie": 'access_token=$_userToken'});
+      if (response.statusCode != 200) {
+        _userToken = null;
+      }
+    }
+    else  {
+
     }
     setState(() {
       _loaded = true;
     });
   }
 
-  void _login() {
+
+  void _login() async {
     // Login here
-    setState(() {
-      _userToken = "abcd";
-    });
+    var authentication = {"email": _username, "password": _password};
+    var response = await http.post(Uri.parse("https://poosd-f2021-11.herokuapp.com/users/login"), body: authentication);
+    if (response.statusCode == 200) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      var body = jsonDecode(response.body);
+      var sth = response.headers;
+      var tkn = sth["set-cookie"]!.split('; ')[0].split("=")[1];
+      setState(() {
+        _userToken = tkn;
+        _loginFailed = false;
+        prefs.setString("userToken", tkn);
+      });
+    }
+    else  {
+      setState(() {
+        _loginFailed = true;
+      });
+    }
   }
 
   void _updateUsername(String username) async {
@@ -58,10 +94,10 @@ class _RecsAppState extends State<RecsApp> {
     MaterialPage currPage;
     if (_loaded) {
       if (_userToken == null) {
-        currPage = MaterialPage(child: LoginPage(_updateUsername, _updatePassword, _login));
+        currPage = MaterialPage(child: LoginPage(_updateUsername, _updatePassword, _login, _loginFailed));
       }
       else  {
-        currPage = MaterialPage(child: LandingPage(username: _username,));
+        currPage = MaterialPage(child: LandingPage(username: _username, usertoken: _userToken!, logout: logout));
       }
     }
     else  {
@@ -102,7 +138,13 @@ class _RecsAppState extends State<RecsApp> {
           pages: [
             currPage,
           ],
-        ),
+      onPopPage: (route, result) {
+          if (route.didPop(result)) {
+            return true;
+          }
+          return false;
+        },
+      ),
     );
   }
 }
