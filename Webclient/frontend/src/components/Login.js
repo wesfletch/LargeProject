@@ -58,7 +58,9 @@ function Login()
                     </Button>
                 </div>
                 <div class="continue-as-guest">Continue As Guest</div>
-                <div class="dont-have-an-account">Don’t have an account?</div>
+                <div class="dont-have-an-account">
+                    <Link to={'register'}>Don’t have an account?</Link>
+                </div>
                 <div class="rectangle-58">
                     <Form>
                         <Form.Group class="formElement">

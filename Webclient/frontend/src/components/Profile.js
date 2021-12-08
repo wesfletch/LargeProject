@@ -44,7 +44,7 @@ function Profile()
         }
         if (song.value.length > 0)
         {
-            obj.fav_tracks = [email.value];
+            obj.fav_tracks = [song.value];
         }
         var js = JSON.stringify(obj);
         try

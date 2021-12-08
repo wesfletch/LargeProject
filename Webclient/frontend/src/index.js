@@ -10,6 +10,8 @@ import CreatePlaylistPage from './pages/CreatePlaylistPage';
 import EditPlaylistPage from './pages/EditPlaylistPage';
 import AddSongsPage from './pages/AddSongsPage';
 import ProfilePage from './pages/ProfilePage';
+import EmailPage from './pages/EmailPage';
+import FavPage from './pages/FavPage';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -22,6 +24,8 @@ ReactDOM.render(
         <Route path="editPlaylist" element={<EditPlaylistPage />} />
         <Route path="addSongs" element={<AddSongsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="email" element={<EmailPage />} />
+        <Route path="fav" element={<FavPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
