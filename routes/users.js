@@ -519,22 +519,48 @@ router.post('/addplaylist', authorized, async(req,res) =>{
     })
 });
 
+// Get user's playlists (minus songs)
+router.get('/playlists', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
+    User.findById({_id : req.user._id})
+        .populate('playlists', 'name friend')
+        .exec((err,document) => 
+    {
+        if (err)
+        {
+            res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        }
+        else
+        {
+            res.status(200).json({playlists : document.playlists, authenticated : true});
+        }
+    });
+});
+
+// Get full playlist (plus songs)
+router.get('/playlist/:id', passport.authenticate('jwt', {session : false}), (req,res) => 
+{
+    Playlist.findById({_id : req.params.id})
+            .populate('songs')
+            .exec((err, playlist) =>
+    {
+        if (err)
+        {
+            return res.status(500).json({message : {msgBody : "Error has occured", msgError: true}});
+        }
+        else 
+        {
+            return res.status(200).json({playlist : playlist, authenticated: true});
+        }
+    });
+
+});
+
 //Delete a playlist
 router.delete('/playlist/:id', authorized,(req,res)=>{
     Playlist.findByIdAndDelete(req.params.id)
     .then(() => res.status(200).json({message : {msgBody : "Successfully Deleted Playlist.", msgError: false}}))
     .catch(err => res.status(500).json({message : {msgBody : "Error deleting playlist.", msgError: err}}));
-});
-
-//Get user's playlists
-router.get('/playlists', authorized,(req,res)=>{
-    User.findById({_id : req.user._id}).populate('playlists').exec((err,document)=>{
-        if(err)
-            res.status(500).json({message : {msgBody : "Error fetching playlists.", msgError: err}});
-        else{
-            res.status(200).json({playlists : document.playlists});
-        }
-    });
 });
 
 //Edit Playlist
