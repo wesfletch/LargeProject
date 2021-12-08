@@ -17,9 +17,45 @@ function FriendTable2()
             return 'http://localhost:5000/users/friends/';
         }
     }
-    function setFriend(name)
+    function getPath()
+    {
+        if (process.env.NODE_ENV === 'production')
+        {
+            return 'https://poosd-f2021-11.herokuapp.com/fetch/recspipe';
+        }
+        else
+        {
+            return 'http://localhost:5000/fetch/recspipe';
+        }
+    }
+    async function setFriend(name)
     {
         // grab their favs
+        var i = 0;
+        while (i < playlists.length && JSON.stringify(playlists[i].display_name).replaceAll('"','') != name)
+        {
+            i++;
+        }
+        if (i < playlists.length)
+        {
+            var obj = {artists:[JSON.stringify(playlists[i].fav_artists[0]).replaceAll('"','')], tracks:[JSON.stringify(playlists[i].fav_tracks[0]).replaceAll('"','')], genres:[JSON.stringify(playlists[i].fav_genres[0]).replaceAll('"','')]};
+            var js = JSON.stringify(obj);
+            try
+            {
+                const response = await fetch(getPath(), {method:'POST',credentials: 'include', body:js,headers:{'Content-Type':'application/json'}});
+                var res = await response.text();
+                //alert(js + res);
+                //alert('testa');
+                localStorage.setItem("rec", res);
+                //alert('test');
+                //window.location.href = '/recList';
+            }
+            catch(e)
+            {
+                alert(js + e.toString());
+                return;
+            }
+        }
     }
     useEffect(() => {
         async function getPlaylists() {
@@ -56,7 +92,7 @@ function FriendTable2()
                     {rows.map((r) => (
                         <tr>
                             <td class="rowy">{r}</td>
-                            <Form.Check type="radio" onChange={setFriend({r})}/>
+                            <Form.Check type="radio" onClick={async () => {await setFriend(r);}}/>
                         </tr>
                     ))}
                 </table>
