@@ -8,6 +8,10 @@ function NavigationBar()
     {
         window.location.href = '/home';
     };
+    const goProfile = async event =>
+    {
+        window.location.href = '/profile';
+    };
     function getPath()
     {
         if (process.env.NODE_ENV === 'production')
@@ -55,7 +59,11 @@ function NavigationBar()
             </div>
             <div class="recommend-songs oswald-normal-white-17px">Recommend Songs</div>
             <div class="friends oswald-normal-white-17px">Friends</div>
-            <div class="profile oswald-normal-white-17px">Profile</div>
+            <div class="profile oswald-normal-white-17px">
+                <Button variant='welcomeBtn' size="biggish" onClick={goProfile}>
+                    Profile
+                </Button>
+            </div>
             <div class="logout oswald-normal-white-17px">
                 <Button variant='welcomeBtn' size="biggish" onClick={doLogout}>
                     Logout
