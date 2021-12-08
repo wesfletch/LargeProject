@@ -26,7 +26,9 @@ function EditPlaylist()
                     <div class="edit-playlist-1 oswald-normal-black-40px">Edit Playlist</div>
                     <div class="rectangle-50"></div>
                     <div class="songs oswald-normal-black-30px">Songs</div>
-                    <div class="rectangle-55-1"></div>
+                    <div class="rectangle-55-1">
+                        <SongTable/>
+                    </div>
                     <div class="button">
                         <Button variant='signInBtn' size="big" onClick={doAddSongs}>
                             Add Songs
